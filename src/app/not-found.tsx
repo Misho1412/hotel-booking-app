@@ -1,23 +1,16 @@
-import React from "react";
-import I404Png from "@/images/404.png";
-import Image from "next/image";
-import ButtonPrimary from "@/shared/ButtonPrimary";
+import React from 'react';
+import Link from 'next/link';
+import { defaultLocale } from '@/i18n/settings';
 
-const Page404 = () => (
-  <div className="nc-Page404">
-    <div className="container relative pt-5 pb-16 lg:pb-20 lg:pt-5">
-      {/* HEADER */}
-      <header className="text-center max-w-2xl mx-auto space-y-2">
-        <Image src={I404Png} alt="not-found" />
-        <span className="block text-sm text-neutral-800 sm:text-base dark:text-neutral-200 tracking-wider font-medium">
-          {`THE PAGE YOU WERE LOOKING FOR DOESN'T EXIST.`}{" "}
-        </span>
-        <div className="pt-8">
-          <ButtonPrimary href="/">Return Home Page</ButtonPrimary>
-        </div>
-      </header>
+export default function GlobalNotFound() {
+  return (
+    <div className="container mx-auto py-20 text-center">
+      <h1 className="text-8xl font-bold mb-6">404</h1>
+      <h2 className="text-3xl mb-6">Page Not Found</h2>
+      <p className="text-xl mb-10">Sorry, the page you are looking for doesn't exist or has been moved.</p>
+      <Link href={`/${defaultLocale}`} className="bg-blue-600 text-white py-3 px-6 rounded-full hover:bg-blue-700 transition">
+        Return to Home
+      </Link>
     </div>
-  </div>
-);
-
-export default Page404;
+  );
+}

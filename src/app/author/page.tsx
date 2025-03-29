@@ -1,16 +1,10 @@
 "use client";
 
 import { Tab } from "@headlessui/react";
-import CarCard from "@/components/CarCard";
 import CommentListing from "@/components/CommentListing";
-import ExperiencesCard from "@/components/ExperiencesCard";
 import StartRating from "@/components/StartRating";
 import StayCard from "@/components/StayCard2";
-import {
-  DEMO_CAR_LISTINGS,
-  DEMO_EXPERIENCES_LISTINGS,
-  DEMO_STAY_LISTINGS,
-} from "@/data/listings";
+import { DEMO_STAY_LISTINGS } from "@/data/listings";
 import React, { FC, Fragment, useState } from "react";
 import Avatar from "@/shared/Avatar";
 import ButtonSecondary from "@/shared/ButtonSecondary";
@@ -19,7 +13,7 @@ import SocialsList from "@/shared/SocialsList";
 export interface AuthorPageProps {}
 
 const AuthorPage: FC<AuthorPageProps> = ({}) => {
-  let [categories] = useState(["Stays", "Experiences", "Car for rent"]);
+  let [categories] = useState(["Stays"]);
 
   const renderSidebar = () => {
     return (
@@ -158,28 +152,6 @@ const AuthorPage: FC<AuthorPageProps> = ({}) => {
                   <ButtonSecondary>Show me more</ButtonSecondary>
                 </div>
               </Tab.Panel>
-              <Tab.Panel className="">
-                <div className="mt-8 grid grid-cols-1 gap-6 md:gap-7 sm:grid-cols-2">
-                  {DEMO_EXPERIENCES_LISTINGS.filter((_, i) => i < 4).map(
-                    (stay) => (
-                      <ExperiencesCard key={stay.id} data={stay} />
-                    )
-                  )}
-                </div>
-                <div className="flex mt-11 justify-center items-center">
-                  <ButtonSecondary>Show me more</ButtonSecondary>
-                </div>
-              </Tab.Panel>
-              <Tab.Panel className="">
-                <div className="mt-8 grid grid-cols-1 gap-6 md:gap-7 sm:grid-cols-2">
-                  {DEMO_CAR_LISTINGS.filter((_, i) => i < 4).map((stay) => (
-                    <CarCard key={stay.id} data={stay} />
-                  ))}
-                </div>
-                <div className="flex mt-11 justify-center items-center">
-                  <ButtonSecondary>Show me more</ButtonSecondary>
-                </div>
-              </Tab.Panel>
             </Tab.Panels>
           </Tab.Group>
         </div>
@@ -199,9 +171,8 @@ const AuthorPage: FC<AuthorPageProps> = ({}) => {
           <CommentListing hasListingTitle className="pb-8" />
           <CommentListing hasListingTitle className="py-8" />
           <CommentListing hasListingTitle className="py-8" />
-          <CommentListing hasListingTitle className="py-8" />
           <div className="pt-8">
-            <ButtonSecondary>View more 20 reviews</ButtonSecondary>
+            <ButtonSecondary>Show me more</ButtonSecondary>
           </div>
         </div>
       </div>
@@ -209,16 +180,14 @@ const AuthorPage: FC<AuthorPageProps> = ({}) => {
   };
 
   return (
-    <div className={`nc-AuthorPage `}>
-      <main className="container mt-12 mb-24 lg:mb-32 flex flex-col lg:flex-row">
-        <div className="block flex-grow mb-24 lg:mb-0">
-          <div className="lg:sticky lg:top-24">{renderSidebar()}</div>
-        </div>
-        <div className="w-full lg:w-3/5 xl:w-2/3 space-y-8 lg:space-y-10 lg:pl-10 flex-shrink-0">
+    <div className="nc-AuthorPage container">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-10 md:gap-8 lg:gap-10">
+        <div className="md:col-span-2 lg:col-span-2">
           {renderSection1()}
           {renderSection2()}
         </div>
-      </main>
+        <div className="md:col-span-1 lg:col-span-1">{renderSidebar()}</div>
+      </div>
     </div>
   );
 };

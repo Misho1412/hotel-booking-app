@@ -5,7 +5,7 @@ import {
   MagnifyingGlassIcon,
   UserCircleIcon,
 } from "@heroicons/react/24/outline";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { PathName } from "@/routers/types";
 import MenuBar from "@/shared/MenuBar";
 import isInViewport from "@/utils/isInViewport";
@@ -47,14 +47,16 @@ const NAV: NavItem[] = [
 
 const FooterNav = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-
   const pathname = usePathname();
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.addEventListener("scroll", handleEvent);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setIsMounted(true);
+    window.addEventListener("scroll", handleEvent);
+    
+    return () => {
+      window.removeEventListener("scroll", handleEvent);
+    };
   }, []);
 
   const handleEvent = () => {
@@ -64,12 +66,9 @@ const FooterNav = () => {
   };
 
   const showHideHeaderMenu = () => {
-    // if (typeof window === "undefined" || window?.innerWidth >= 768) {
-    //   return null;
-    // }
+    if (!containerRef.current) return;
 
     let currentScrollPos = window.pageYOffset;
-    if (!containerRef.current) return;
 
     // SHOW _ HIDE MAIN MENU
     if (currentScrollPos > WIN_PREV_POSITION) {
@@ -126,6 +125,11 @@ const FooterNav = () => {
       </div>
     );
   };
+
+  // Only render the component on the client side to prevent hydration mismatches
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <div

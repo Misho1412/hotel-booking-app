@@ -2,16 +2,13 @@
 
 import React, { FC, useState } from "react";
 import StaySearchForm from "./(stay-search-form)/StaySearchForm";
-import ExperiencesSearchForm from "./(experiences-search-form)/ExperiencesSearchForm";
-import RentalCarSearchForm from "./(car-search-form)/RentalCarSearchForm";
-import FlightSearchForm from "./(flight-search-form)/FlightSearchForm";
 
-export type SearchTab = "Stays" | "Experiences" | "Cars" | "Flights";
+export type SearchTab = "Stays" | "Cars";
 
 export interface HeroSearchFormProps {
   className?: string;
   currentTab?: SearchTab;
-  currentPage?: "Stays" | "Experiences" | "Cars" | "Flights";
+  currentPage?: "Stays" | "Cars";
 }
 
 const HeroSearchForm: FC<HeroSearchFormProps> = ({
@@ -19,8 +16,10 @@ const HeroSearchForm: FC<HeroSearchFormProps> = ({
   currentTab = "Stays",
   currentPage,
 }) => {
-  const tabs: SearchTab[] = ["Stays", "Experiences", "Cars", "Flights"];
-  const [tabActive, setTabActive] = useState<SearchTab>(currentTab);
+  const tabs: SearchTab[] = ["Stays", "Cars"];
+  const [tabActive, setTabActive] = useState<SearchTab>(
+    currentTab as SearchTab || "Stays"
+  );
 
   const renderTab = () => {
     return (
@@ -49,19 +48,7 @@ const HeroSearchForm: FC<HeroSearchFormProps> = ({
   };
 
   const renderForm = () => {
-    switch (tabActive) {
-      case "Stays":
-        return <StaySearchForm />;
-      case "Experiences":
-        return <ExperiencesSearchForm />;
-      case "Cars":
-        return <RentalCarSearchForm />;
-      case "Flights":
-        return <FlightSearchForm />;
-
-      default:
-        return null;
-    }
+    return <StaySearchForm />;
   };
 
   return (

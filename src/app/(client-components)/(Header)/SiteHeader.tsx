@@ -13,7 +13,7 @@ import Header3 from "./Header3";
 import { usePathname } from "next/navigation";
 import { useThemeMode } from "@/utils/useThemeMode";
 
-export type SiteHeaders = "Header 1" | "Header 2" | "Header 3";
+export type SiteHeaders = "Header 1";
 
 interface HomePageItem {
   name: string;
@@ -36,14 +36,12 @@ const PAGES_HIDE_HEADER_BORDER: PathName[] = [
 const SiteHeader = () => {
   const anchorRef = useRef<HTMLDivElement>(null);
 
-  let [headers] = useState<SiteHeaders[]>(["Header 1", "Header 2", "Header 3"]);
+  let [headers] = useState<SiteHeaders[]>(["Header 1"]);
 
   let [homePages] = useState<HomePageItem[]>([
     { name: "Travel", slug: "/" },
-    { name: "Real Estate", slug: "/home-2" },
-    { name: "Booking", slug: "/home-3" },
   ]);
-  const [headerSelected, setHeaderSelected] = useState<SiteHeaders>("Header 2");
+  const [headerSelected, setHeaderSelected] = useState<SiteHeaders>("Header 1");
 
   const [isTopOfPage, setIsTopOfPage] = useState(true);
 
@@ -126,6 +124,7 @@ const SiteHeader = () => {
   };
 
   // FOR DEMO PAGE
+  /* Removed settings button as requested
   const renderControlSelections = () => {
     return (
       <div className="ControlSelections relative z-40 hidden lg:block">
@@ -168,6 +167,7 @@ const SiteHeader = () => {
       </div>
     );
   };
+  */
 
   const renderHeader = () => {
     let headerClassName = "shadow-sm dark:border-b dark:border-neutral-700";
@@ -176,22 +176,13 @@ const SiteHeader = () => {
         ? ""
         : "shadow-sm dark:border-b dark:border-neutral-700";
     }
-    switch (headerSelected) {
-      case "Header 1":
-        return <Header className={headerClassName} navType="MainNav1" />;
-      case "Header 2":
-        return <Header className={headerClassName} navType="MainNav2" />;
-      case "Header 3":
-        return <Header3 className={headerClassName} />;
-
-      default:
-        return <Header className={headerClassName} navType="MainNav1" />;
-    }
+    // Only use Header1 with MainNav1
+    return <Header className={headerClassName} navType="MainNav1" />;
   };
 
   return (
     <>
-      {renderControlSelections()}
+      {/* {renderControlSelections()} */}
       {renderHeader()}
       <div ref={anchorRef} className="h-1 absolute invisible"></div>
     </>

@@ -8,8 +8,8 @@ import Image, { StaticImageData } from "next/image";
 export interface SectionHeroArchivePageProps {
   className?: string;
   listingType?: ReactNode;
-  currentPage: "Stays" | "Experiences" | "Cars" | "Flights";
-  currentTab: SearchTab;
+  currentPage: "Stays" | "Cars" | string;
+  currentTab: SearchTab | "Cars" | string;
   rightImage?: StaticImageData;
 }
 
@@ -57,7 +57,7 @@ const SectionHeroArchivePage: FC<SectionHeroArchivePageProps> = ({
 
       <div className="hidden lg:flow-root w-full">
         <div className="z-10 lg:-mt-40 xl:-mt-56 w-full">
-          <HeroSearchForm currentPage={currentPage} currentTab={currentTab} />
+          <HeroSearchForm currentPage={currentPage as any} currentTab={currentTab as any} />
         </div>
       </div>
     </div>

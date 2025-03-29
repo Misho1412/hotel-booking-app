@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { FC, Fragment, useEffect, useState } from "react";
+import useTranslation from "@/hooks/useTranslation";
 
 // <--- NavItemType --->
 export interface MegamenuItem {
@@ -24,6 +25,7 @@ export interface NavItemType {
   children?: NavItemType[];
   megaMenu?: MegamenuItem[];
   type?: "dropdown" | "megaMenu" | "none";
+  translationKey?: string;
 }
 
 export interface NavigationItemProps {
@@ -252,13 +254,34 @@ const NavigationItem: FC<NavigationItemWithRouterProps> = ({ menuItem }) => {
 
   // ===================== MENU MAIN MENU =====================
   const renderMainItem = (item: NavItemType) => {
+    const t = useTranslation('header');
+    
+    // Use translations from the header namespace for About and Contact
+    let displayName = item.name;
+    
+    if (item.translationKey) {
+      try {
+        // Extract only the key part without the namespace prefix if it contains dots
+        const keyParts = item.translationKey.split('.');
+        const translationKey = keyParts.length > 1 ? keyParts[keyParts.length - 1] : item.translationKey;
+        
+        // The t function from next-intl expects the key as the first parameter
+        displayName = t(translationKey);
+      } catch (error) {
+        console.warn(`Translation not found for key: ${item.translationKey}`, error);
+      }
+    }
+    
     return (
       <Link
-        rel="noopener noreferrer"
         className="inline-flex items-center text-sm xl:text-base font-normal text-neutral-700 dark:text-neutral-300 py-2 px-4 xl:px-5 rounded-full hover:text-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
-        href={item.href || "/"}
+        href={{
+          pathname: item.href || undefined,
+        }}
+        target={item.targetBlank ? "_blank" : undefined}
+        rel="noopener noreferrer"
       >
-        {item.name}
+        {displayName}
         {item.type && (
           <ChevronDownIcon
             className="ml-1 -mr-1 h-4 w-4 text-neutral-400"

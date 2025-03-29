@@ -1,0 +1,118 @@
+{
+  "app": {
+    "name": "Online Booking Management"
+  },
+  "header": {
+    "home": "Home",
+    "about": "Aboutus",
+    "contact": "Contactus",
+    "login": "Login",
+    "signup": "Sign Up",
+    "account": "Account",
+    "language": "Language",
+    "currency": "Currency"
+  },
+  "home": {
+    "hero": {
+      "title": "Find Your Perfect Stay",
+      "subtitle": "Discover and book the best accommodations for your next trip",
+      "search": "Search"
+    },
+    "featured": {
+      "title": "Featured Destinations",
+      "viewAll": "View All"
+    },
+    "benefits": {
+      "title": "Benefits",
+      "subtitle": "Happening Cities",
+      "advertising": {
+        "title": "Cost-effective advertising",
+        "description": "With a free listing, you can advertise your rental with no upfront costs"
+      },
+      "exposure": {
+        "title": "Reach millions with Chisfis",
+        "description": "Millions of people are searching for unique places to stay around the world"
+      },
+      "secure": {
+        "title": "Secure and simple",
+        "description": "A Holiday Lettings listing gives you a secure and easy way to take bookings and payments online"
+      }
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "subtitle": "Keep calm & travel on",
+      "bookAndRelax": {
+        "title": "Book & relax",
+        "description": "Let each trip be an inspirational journey, each room a peaceful space"
+      },
+      "smartChecklist": {
+        "title": "Smart checklist",
+        "description": "Let each trip be an inspirational journey, each room a peaceful space"
+      },
+      "saveMore": {
+        "title": "Save more",
+        "description": "Let each trip be an inspirational journey, each room a peaceful space"
+      }
+    },
+    "featuredPlaces": {
+      "title": "Featured places to stay",
+      "subtitle": "Popular places to stay that Chisfis recommends for you",
+      "cities": {
+        "newYork": "New York",
+        "tokyo": "Tokyo",
+        "paris": "Paris",
+        "london": "London"
+      }
+    },
+    "suggestions": {
+      "title": "Suggestions for discovery",
+      "subtitle": "Popular places to stay that Chisfis recommends for you"
+    },
+    "newsletter": {
+      "title": "Join our newsletter 🎉",
+      "subtitle": "Read and share new perspectives on just about any topic. Everyone's welcome.",
+      "discount": "Get more discount",
+      "premium": "Get premium magazines",
+      "emailPlaceholder": "Enter your email"
+    },
+    "whyChooseUs": {
+      "title": "Why did you choose us?",
+      "description": "Accompanying us, you have a trip full of experiences. With Chisfis, booking accommodation, resort villas, hotels, private houses, apartments... becomes fast, convenient and easy.",
+      "becomeAuthor": "Become an author"
+    }
+  },
+  "search": {
+    "location": "Location",
+    "date": "Date",
+    "guests": "Guests",
+    "search": "Search",
+    "advanced": "Advanced Search",
+    "addGuests": "Add Guests",
+    "adults": "Adults",
+    "ages_13_or_above": "Ages 13 or above",
+    "children": "Children",
+    "ages_2_12": "Ages 2-12",
+    "infants": "Infants",
+    "under_2": "Under 2",
+    "where_are_you_going": "Where are you going?",
+    "addDates": "Add dates",
+    "checkin_checkout": "Check-in - Check-out",
+    "nights": "nights"
+  },
+  "booking": {
+    "book": "Book Now",
+    "reserve": "Reserve",
+    "checkIn": "Check In",
+    "checkOut": "Check Out",
+    "guests": "Guests",
+    "total": "Total",
+    "payment": "Payment"
+  },
+  "footer": {
+    "about": "Aboutus",
+    "contact": "Contactus",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "copyright": "© 2023 Online Booking Management. All rights reserved."
+  }
+} 

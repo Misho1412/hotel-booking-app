@@ -3,3 +3,74 @@
 @import "./_dates_picker";
 //
 @import "./header";
+
+// RTL Support
+html[dir="rtl"] {
+  // General direction changes
+  direction: rtl;
+  text-align: right;
+  
+  // Flip icons that need to be mirrored
+  .la-angle-right:before {
+    content: "\f104"; // Use the left arrow icon
+  }
+  
+  .la-angle-left:before {
+    content: "\f105"; // Use the right arrow icon
+  }
+  
+  // Adjust form elements
+  input, textarea {
+    text-align: right;
+  }
+  
+  // Adjust margins and paddings for common components
+  .mr-1, .mr-2, .mr-3, .mr-4, .mr-5 {
+    margin-right: 0 !important;
+    margin-left: auto !important;
+  }
+  
+  .ml-1, .ml-2, .ml-3, .ml-4, .ml-5 {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+  }
+  
+  // Adjust any UI elements that need special RTL handling
+  .dropdown-menu {
+    left: auto;
+    right: 0;
+  }
+  
+  // Properly align headers and text
+  h1, h2, h3, h4, h5, h6 {
+    text-align: right;
+  }
+}
+
+// Additional RTL specific adjustments
+html[dir="rtl"] {
+  .flex-row {
+    // This handles flex containers to ensure correct order in RTL
+    &:not(.flex-row-reverse) {
+      flex-direction: row-reverse;
+    }
+  }
+  
+  // Popover and dropdown positioning
+  .absolute {
+    &.right-0 {
+      right: auto;
+      left: 0;
+    }
+    
+    &.left-0 {
+      left: auto;
+      right: 0;
+    }
+  }
+  
+  // Adjust grid layouts if needed
+  .grid-cols-2, .grid-cols-3, .grid-cols-4 {
+    direction: rtl;
+  }
+}

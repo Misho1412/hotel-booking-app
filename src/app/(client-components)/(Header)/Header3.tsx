@@ -150,17 +150,7 @@ const Header3: FC<Header3Props> = ({ className = "" }) => {
       ></div>
       {showHeroSearch && <div id="nc-Header-3-anchor"></div>}
       <header ref={headerInnerRef} className={`sticky top-0 z-40 ${className}`}>
-        <div
-          className={`bg-white dark:bg-neutral-900 absolute h-full inset-x-0 top-0 transition-transform will-change-[transform,opacity]
-          ${showHeroSearch ? "duration-75" : ""} 
-          ${
-            showHeroSearch
-              ? currentTab === "Cars" || currentTab === "Flights"
-                ? "scale-y-[4.4]"
-                : "scale-y-[3.4]"
-              : ""
-          }`}
-        ></div>
+       
         <div className="relative px-4 lg:container h-[88px] flex">
           <div className="flex-1 flex justify-between">
             {/* Logo (lg+) */}

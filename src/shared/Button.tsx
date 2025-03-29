@@ -17,6 +17,7 @@ export interface ButtonProps {
   targetBlank?: boolean;
   onClick?: () => void;
   children?: React.ReactNode;
+  isRTL?: boolean;
 }
 
 const Button: FC<ButtonProps> = ({
@@ -31,13 +32,14 @@ const Button: FC<ButtonProps> = ({
   type,
   loading,
   onClick = () => {},
+  isRTL = false,
 }) => {
-  const CLASSES = `nc-Button relative h-auto inline-flex items-center justify-center rounded-full transition-colors ${fontSize} ${sizeClass} ${translate} ${className} `;
+  const CLASSES = `nc-Button relative h-auto inline-flex items-center justify-center rounded-full transition-colors ${fontSize} ${sizeClass} ${translate} ${className} ${isRTL ? 'flex-row-reverse' : ''}`;
 
   const _renderLoading = () => {
     return (
       <svg
-        className="animate-spin -ml-1 mr-3 h-5 w-5"
+        className={`animate-spin ${isRTL ? 'ml-3 -mr-1' : '-ml-1 mr-3'} h-5 w-5`}
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"

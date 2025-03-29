@@ -3,6 +3,7 @@
 import { ClockIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import React, { useState, useRef, useEffect, FC } from "react";
 import ClearDataButton from "./ClearDataButton";
+import useTranslation from "@/hooks/useTranslation";
 
 export interface LocationInputProps {
   placeHolder?: string;
@@ -19,6 +20,13 @@ const LocationInput: FC<LocationInputProps> = ({
   className = "nc-flex-1.5",
   divHideVerticalLineClass = "left-10 -right-0.5",
 }) => {
+  // Track if component is mounted (client-side)
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -61,6 +69,35 @@ const LocationInput: FC<LocationInputProps> = ({
     setShowPopover(false);
   };
 
+  // Client-side only rendering for the initial state
+  if (!mounted) {
+    return (
+      <div className={`relative flex ${className}`}>
+        <div className={`flex z-10 flex-1 relative [ nc-hero-field-padding ] flex-shrink-0 items-center space-x-3 cursor-pointer focus:outline-none text-left`}>
+          <div className="text-neutral-300 dark:text-neutral-400">
+            <MapPinIcon className="w-5 h-5 lg:w-7 lg:h-7" />
+          </div>
+          <div className="flex-grow">
+            <input
+              className="block w-full bg-transparent border-none focus:ring-0 p-0 focus:outline-none focus:placeholder-neutral-300 xl:text-lg font-semibold placeholder-neutral-800 dark:placeholder-neutral-200 truncate"
+              placeholder={placeHolder}
+              value=""
+              readOnly
+            />
+            <span className="block mt-0.5 text-sm text-neutral-400 font-light">
+              <span className="line-clamp-1">{desc}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Dynamic translations - client-side only
+  const t = useTranslation('search');
+  const translatedPlaceholder = placeHolder === "Location" ? t('location') : placeHolder;
+  const translatedDesc = desc === "Where are you going?" ? t('where_are_you_going') : desc;
+
   const renderRecentSearches = () => {
     return (
       <>
@@ -82,7 +119,7 @@ const LocationInput: FC<LocationInputProps> = ({
               <span className="block text-neutral-400">
                 <ClockIcon className="h-4 sm:h-6 w-4 sm:w-6" />
               </span>
-              <span className=" block font-medium text-neutral-700 dark:text-neutral-200">
+              <span className="block font-medium text-neutral-700 dark:text-neutral-200">
                 {item}
               </span>
             </span>
@@ -122,7 +159,7 @@ const LocationInput: FC<LocationInputProps> = ({
     <div className={`relative flex ${className}`} ref={containerRef}>
       <div
         onClick={() => setShowPopover(true)}
-        className={`flex z-10 flex-1 relative [ nc-hero-field-padding ] flex-shrink-0 items-center space-x-3 cursor-pointer focus:outline-none text-left  ${
+        className={`flex z-10 flex-1 relative [ nc-hero-field-padding ] flex-shrink-0 items-center space-x-3 cursor-pointer focus:outline-none text-left ${
           showPopover ? "nc-hero-field-focused" : ""
         }`}
       >
@@ -131,8 +168,8 @@ const LocationInput: FC<LocationInputProps> = ({
         </div>
         <div className="flex-grow">
           <input
-            className={`block w-full bg-transparent border-none focus:ring-0 p-0 focus:outline-none focus:placeholder-neutral-300 xl:text-lg font-semibold placeholder-neutral-800 dark:placeholder-neutral-200 truncate`}
-            placeholder={placeHolder}
+            className="block w-full bg-transparent border-none focus:ring-0 p-0 focus:outline-none focus:placeholder-neutral-300 xl:text-lg font-semibold placeholder-neutral-800 dark:placeholder-neutral-200 truncate"
+            placeholder={translatedPlaceholder}
             value={value}
             autoFocus={showPopover}
             onChange={(e) => {
@@ -140,8 +177,8 @@ const LocationInput: FC<LocationInputProps> = ({
             }}
             ref={inputRef}
           />
-          <span className="block mt-0.5 text-sm text-neutral-400 font-light ">
-            <span className="line-clamp-1">{!!value ? placeHolder : desc}</span>
+          <span suppressHydrationWarning className="block mt-0.5 text-sm text-neutral-400 font-light">
+            <span className="line-clamp-1">{!!value ? translatedPlaceholder : translatedDesc}</span>
           </span>
           {value && showPopover && (
             <ClearDataButton
