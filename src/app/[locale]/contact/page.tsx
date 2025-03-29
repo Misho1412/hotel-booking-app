@@ -1,7 +1,6 @@
 "use client";
 
 import React, { FC, Fragment, useState, useEffect } from "react";
-import { Helmet } from "react-helmet";
 import SectionSubscribe2 from "@/components/SectionSubscribe2";
 import SocialsList from "@/shared/SocialsList";
 import Label from "@/components/Label";
@@ -11,6 +10,7 @@ import ButtonPrimary from "@/shared/ButtonPrimary";
 import BackgroundSection from "@/components/BackgroundSection";
 import SectionClientSay from "@/components/SectionClientSay";
 import useTranslation from "@/hooks/useTranslation";
+import Head from "next/head";
 
 export interface PageContactProps {
   params: { locale: string };
@@ -35,9 +35,9 @@ const PageContact: FC<PageContactProps> = ({ params }) => {
 
   return (
     <div className={`nc-PageContact overflow-hidden`}>
-      <Helmet>
+      <Head>
         <title>Contact || Booking React Template</title>
-      </Helmet>
+      </Head>
       <div className="mb-24 lg:mb-32">
         <div className="container py-16 lg:py-28 space-y-16 lg:space-y-28">
           <div data-aos="fade-up" data-aos-duration="1000">
