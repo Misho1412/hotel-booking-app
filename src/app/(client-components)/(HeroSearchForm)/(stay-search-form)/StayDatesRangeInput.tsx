@@ -1,12 +1,14 @@
 "use client";
 
-import React, { Fragment, useState, FC } from "react";
+import React, { Fragment, useState, FC, useEffect } from "react";
 import { Popover, Transition } from "@headlessui/react";
 import { CalendarIcon } from "@heroicons/react/24/outline";
 import DatePickerCustomHeaderTwoMonth from "@/components/DatePickerCustomHeaderTwoMonth";
 import DatePickerCustomDay from "@/components/DatePickerCustomDay";
 import DatePicker from "react-datepicker";
 import ClearDataButton from "../ClearDataButton";
+import useTranslation from "@/hooks/useTranslation";
+import { usePathname } from "next/navigation";
 
 export interface StayDatesRangeInputProps {
   className?: string;
@@ -17,6 +19,14 @@ const StayDatesRangeInput: FC<StayDatesRangeInputProps> = ({
   className = "[ lg:nc-flex-2 ]",
   fieldClassName = "[ nc-hero-field-padding ]",
 }) => {
+  const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
+  const isArabic = pathname?.startsWith('/ar');
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [startDate, setStartDate] = useState<Date | null>(
     new Date("2023/02/06")
   );
@@ -29,6 +39,51 @@ const StayDatesRangeInput: FC<StayDatesRangeInputProps> = ({
     setEndDate(end);
   };
 
+  // Client-side only translation
+  const t = useTranslation('search');
+  const m = useTranslation('months');
+  
+  // Use try-catch to handle any translation errors
+  let addDatesLabel, checkinCheckoutLabel;
+  try {
+    addDatesLabel = mounted ? t('addDates') : 'Add dates';
+    checkinCheckoutLabel = mounted ? t('checkin_checkout') : 'Check in - Check out';
+  } catch (error) {
+    addDatesLabel = 'Add dates';
+    checkinCheckoutLabel = 'Check in - Check out';
+  }
+
+  // Format date based on locale
+  const formatDate = (date: Date | null) => {
+    if (!date) return null;
+    
+    if (isArabic) {
+      // For Arabic, we'll manually format the date
+      try {
+        const day = date.getDate().toString().padStart(2, '0');
+        const monthIndex = date.getMonth();
+        const monthNames = [
+          'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+          'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+        ];
+        
+        return `${day} ${monthNames[monthIndex]}`;
+      } catch (error) {
+        // Fallback to English format if translation fails
+        return date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "2-digit"
+        });
+      }
+    } else {
+      // Default English format
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit"
+      });
+    }
+  };
+
   const renderInput = () => {
     return (
       <>
@@ -37,20 +92,11 @@ const StayDatesRangeInput: FC<StayDatesRangeInputProps> = ({
         </div>
         <div className="flex-grow text-left">
           <span className="block xl:text-lg font-semibold">
-            {startDate?.toLocaleDateString("en-US", {
-              month: "short",
-              day: "2-digit",
-            }) || "Add dates"}
-            {endDate
-              ? " - " +
-                endDate?.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "2-digit",
-                })
-              : ""}
+            {formatDate(startDate) || addDatesLabel}
+            {endDate ? " - " + formatDate(endDate) : ""}
           </span>
-          <span className="block mt-1 text-sm text-neutral-400 leading-none font-light">
-            {"Check in - Check out"}
+          <span suppressHydrationWarning className="block mt-1 text-sm text-neutral-400 leading-none font-light">
+            {checkinCheckoutLabel}
           </span>
         </div>
       </>

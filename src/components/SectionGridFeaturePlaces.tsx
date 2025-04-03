@@ -8,6 +8,9 @@ import HeaderFilter from "./HeaderFilter";
 import StayCard from "./StayCard";
 import StayCard2 from "./StayCard2";
 import useTranslation from "@/hooks/useTranslation";
+import LocalizedStayCard from "./LocalizedStayCard";
+import LocalizedStayCard2 from "./LocalizedStayCard2";
+import { useParams } from "next/navigation";
 
 // OTHER DEMO WILL PASS PROPS
 const DEMO_DATA: StayDataType[] = DEMO_STAY_LISTINGS.filter((_, i) => i < 8);
@@ -34,6 +37,8 @@ const SectionGridFeaturePlaces: FC<SectionGridFeaturePlacesProps> = ({
 }) => {
   const [mounted, setMounted] = useState(false);
   const t = useTranslation('home');
+  const params = useParams();
+  const locale = params?.locale as string;
 
   useEffect(() => {
     setMounted(true);
@@ -50,19 +55,7 @@ const SectionGridFeaturePlaces: FC<SectionGridFeaturePlacesProps> = ({
   ];
 
   const renderCard = (stay: StayDataType, index: number) => {
-    let CardName = StayCard;
-    switch (cardType) {
-      case "card1":
-        CardName = StayCard;
-        break;
-      case "card2":
-        CardName = StayCard2;
-        break;
-
-      default:
-        CardName = StayCard;
-    }
-
+    // Use the appropriate localized card based on cardType
     return (
       <div 
         key={stay.id}
@@ -70,7 +63,11 @@ const SectionGridFeaturePlaces: FC<SectionGridFeaturePlacesProps> = ({
         data-aos-delay={200 + index * 100}
         data-aos-duration="800"
       >
-        <CardName data={stay} />
+        {cardType === "card1" ? (
+          <LocalizedStayCard data={stay} locale={locale} />
+        ) : (
+          <LocalizedStayCard2 data={stay} locale={locale} />
+        )}
       </div>
     );
   };

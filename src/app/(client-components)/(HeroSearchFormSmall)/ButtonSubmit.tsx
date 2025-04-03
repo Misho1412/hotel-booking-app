@@ -1,8 +1,9 @@
 "use client";
 
-import React, { FC } from "react";
+import React, { FC, useState, useEffect } from "react";
 import { PathName } from "@/routers/types";
 import Link from "next/link";
+import useTranslation from "@/hooks/useTranslation";
 
 interface Props {
   className?: string;
@@ -13,6 +14,25 @@ const ButtonSubmit: FC<Props> = ({
   className = "",
   href = "/listing-stay-map",
 }) => {
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Client-side only translation
+  const t = useTranslation('search');
+  
+  // Use a try-catch to handle translation errors
+  let searchLabel = "Search";
+  try {
+    if (mounted) {
+      searchLabel = t('search');
+    }
+  } catch (error) {
+    searchLabel = "Search";
+  }
+  
   return (
     <Link
       href={href}
@@ -22,7 +42,7 @@ const ButtonSubmit: FC<Props> = ({
         (document.querySelector(".nc-Footer") as HTMLElement | null)?.click();
       }}
     >
-      <span className="mr-3 md:hidden">Search</span>
+      <span suppressHydrationWarning className="mr-3 md:hidden">{searchLabel}</span>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         className="h-6 w-6"

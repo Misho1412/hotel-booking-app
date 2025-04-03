@@ -1,5 +1,6 @@
-import React, { FC } from "react";
+import React, { FC, useState, useEffect } from "react";
 import { PathName } from "@/routers/types";
+import useTranslation from "@/hooks/useTranslation";
 
 interface Props {
   className?: string;
@@ -11,6 +12,25 @@ const ButtonSubmit: FC<Props> = ({
   onClick = () => {},
   href = "/listing-stay",
 }) => {
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Client-side only translation
+  const t = useTranslation('search');
+  
+  // Use a try-catch to handle translation errors
+  let searchLabel = "Search";
+  try {
+    if (mounted) {
+      searchLabel = t('search');
+    }
+  } catch (error) {
+    searchLabel = "Search";
+  }
+  
   return (
     <button
       type="submit"
@@ -34,7 +54,7 @@ const ButtonSubmit: FC<Props> = ({
           d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
         />
       </svg>
-      <span className="ml-2">Search</span>
+      <span suppressHydrationWarning className="ml-2">{searchLabel}</span>
     </button>
   );
 };

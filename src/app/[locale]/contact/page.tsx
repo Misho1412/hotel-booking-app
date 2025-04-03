@@ -8,7 +8,8 @@ import Input from "@/shared/Input";
 import Textarea from "@/shared/Textarea";
 import ButtonPrimary from "@/shared/ButtonPrimary";
 import BackgroundSection from "@/components/BackgroundSection";
-import SectionClientSay from "@/components/SectionClientSay";
+import SectionHero from "@/app/(server-components)/SectionHero";
+import BgGlassmorphism from "@/components/BgGlassmorphism";
 import useTranslation from "@/hooks/useTranslation";
 import Head from "next/head";
 
@@ -118,11 +119,6 @@ const PageContact: FC<PageContactProps> = ({ params }) => {
               </div>
             </div>
           </div>
-        </div>
-
-        <div className="relative py-16" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="300">
-          <BackgroundSection />
-          <SectionClientSay />
         </div>
 
         <div className="container" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="400">

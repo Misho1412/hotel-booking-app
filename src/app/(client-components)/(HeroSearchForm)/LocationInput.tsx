@@ -95,8 +95,16 @@ const LocationInput: FC<LocationInputProps> = ({
 
   // Dynamic translations - client-side only
   const t = useTranslation('search');
-  const translatedPlaceholder = placeHolder === "Location" ? t('location') : placeHolder;
-  const translatedDesc = desc === "Where are you going?" ? t('where_are_you_going') : desc;
+  
+  // Use try-catch to handle any translation errors
+  let translatedPlaceholder, translatedDesc;
+  try {
+    translatedPlaceholder = placeHolder === "Location" ? t('location') : placeHolder;
+    translatedDesc = desc === "Where are you going?" ? t('where_are_you_going') : desc;
+  } catch (error) {
+    translatedPlaceholder = placeHolder;
+    translatedDesc = desc;
+  }
 
   const renderRecentSearches = () => {
     return (

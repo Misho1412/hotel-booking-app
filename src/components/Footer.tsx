@@ -3,7 +3,7 @@
 import Logo from "@/shared/Logo";
 import SocialsList1 from "@/shared/SocialsList1";
 import { CustomLink } from "@/data/types";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import useTranslation from "@/hooks/useTranslation";
 
 export interface WidgetFooterMenu {
@@ -13,49 +13,64 @@ export interface WidgetFooterMenu {
 }
 
 const Footer: React.FC = () => {
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
   const t = useTranslation('footer');
+  
+  // Only render with translations once mounted on client side
+  if (!mounted) {
+    return (
+      <div className="nc-Footer relative py-24 lg:py-28 border-t border-neutral-200 dark:border-neutral-700">
+        <div className="container">Loading...</div>
+      </div>
+    );
+  }
   
   const widgetMenus: WidgetFooterMenu[] = [
     {
       id: "5",
-      title: "Getting started",
+      title: t('gettingStarted'),
       menus: [
-        { href: "#", label: "Installation" },
-        { href: "#", label: "Release Notes" },
-        { href: "#", label: "Upgrade Guide" },
-        { href: "#", label: "Browser Support" },
-        { href: "#", label: "Editor Support" },
+        { href: "#", label: t('installation') },
+        { href: "#", label: t('releaseNotes') },
+        { href: "#", label: t('upgradeGuide') },
+        { href: "#", label: t('browserSupport') },
+        { href: "#", label: t('editorSupport') },
       ],
     },
     {
       id: "1",
       title: t('about'),
       menus: [
-        { href: "#", label: "Design features" },
-        { href: "#", label: "Prototyping" },
-        { href: "#", label: "Design systems" },
-        { href: "#", label: "Pricing" },
-        { href: "#", label: "Security" },
+        { href: "#", label: t('designFeatures') },
+        { href: "#", label: t('prototyping') },
+        { href: "#", label: t('designSystems') },
+        { href: "#", label: t('pricing') },
+        { href: "#", label: t('security') },
       ],
     },
     {
       id: "2",
-      title: "Resources",
+      title: t('resources'),
       menus: [
-        { href: "#", label: "Best practices" },
-        { href: "#", label: "Support" },
-        { href: "#", label: "Developers" },
-        { href: "#", label: "Learn design" },
-        { href: "#", label: "Releases" },
+        { href: "#", label: t('bestPractices') },
+        { href: "#", label: t('support') },
+        { href: "#", label: t('developers') },
+        { href: "#", label: t('learnDesign') },
+        { href: "#", label: t('releases') },
       ],
     },
     {
       id: "4",
       title: t('contact'),
       menus: [
-        { href: "#", label: "Discussion Forums" },
-        { href: "#", label: "Code of Conduct" },
-        { href: "#", label: "Community Resources" },
+        { href: "#", label: t('discussionForums') },
+        { href: "#", label: t('codeOfConduct') },
+        { href: "#", label: t('communityResources') },
         { href: "#", label: t('terms') },
         { href: "#", label: t('privacy') },
       ],

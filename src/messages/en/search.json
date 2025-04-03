@@ -1,0 +1,18 @@
+{
+  "location": "Location",
+  "date": "Date",
+  "guests": "Guests",
+  "search": "Search",
+  "advanced": "Advanced Search",
+  "addGuests": "Add Guests",
+  "adults": "Adults",
+  "ages_13_or_above": "Ages 13 or above",
+  "children": "Children",
+  "ages_2_12": "Ages 2-12",
+  "infants": "Infants",
+  "under_2": "Under 2",
+  "where_are_you_going": "Where are you going?",
+  "addDates": "Add dates",
+  "checkin_checkout": "Check-in - Check-out",
+  "nights": "nights"
+} 

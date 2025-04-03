@@ -9,9 +9,12 @@ import SectionGridFeaturePlaces from "@/components/SectionGridFeaturePlaces";
 import SectionHowItWork from "@/components/SectionHowItWork";
 import SectionSubscribe2 from "@/components/SectionSubscribe2";
 import SectionVideos from "@/components/SectionVideos";
-import SectionClientSay from "@/components/SectionClientSay";
 import SectionBecomeAnAuthor from "@/components/SectionBecomeAnAuthor";
 import { getTranslations } from 'next-intl/server';
+import SectionHeroArchivePage from "@/app/(server-components)/SectionHeroArchivePage";
+import SectionGridFilterCard from "@/components/SectionGridFilterCard";
+import { DEMO_STAY_LISTINGS } from "@/data/listings";
+import SectionHero2ArchivePage from "@/app/(server-components)/SectionHero2ArchivePage";
 
 const DEMO_CATS: TaxonomyType[] = [
   {
@@ -160,6 +163,8 @@ export default async function PageHome({ params: { locale } }: Props) {
             heading="Suggestions for discovery"
             subHeading="Popular places to stay that Chisfis recommends for you"
             sliderStyle="style2"
+            useTranslation={true}
+            translationNamespace="home"
           />
         </div>
 
@@ -169,22 +174,7 @@ export default async function PageHome({ params: { locale } }: Props) {
 
         <div className="relative py-16">
           <BackgroundSection />
-          <SectionClientSay />
-        </div>
-
-        <div className="relative py-16">
-          <BackgroundSection />
           <SectionBecomeAnAuthor />
-        </div>
-
-        <div className="relative py-16">
-          <BackgroundSection className="bg-neutral-100 dark:bg-black/20" />
-          <SectionSliderNewCategoriesUpdated
-            heading="Explore by types of stays"
-            subHeading="Explore houses based on 10 types of stays"
-            categoryCardType="card5"
-            itemPerRow={5}
-          />
         </div>
       </div>
     </main>

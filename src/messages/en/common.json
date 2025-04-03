@@ -12,6 +12,10 @@
     "language": "Language",
     "currency": "Currency"
   },
+  "tabs": {
+    "stays": "Stays",
+    "cars": "Cars"
+  },
   "home": {
     "hero": {
       "title": "Find Your Perfect Stay",

@@ -1,0 +1,18 @@
+{
+  "location": "الموقع",
+  "date": "التاريخ",
+  "guests": "الضيوف",
+  "search": "بحث",
+  "advanced": "بحث متقدم",
+  "addGuests": "إضافة ضيوف",
+  "adults": "البالغين",
+  "ages_13_or_above": "الأعمار 13 أو أكبر",
+  "children": "الأطفال",
+  "ages_2_12": "الأعمار 2-12",
+  "infants": "الرضع",
+  "under_2": "تحت سن 2",
+  "where_are_you_going": "إلى أين أنت ذاهب؟",
+  "addDates": "أضف تواريخ",
+  "checkin_checkout": "تسجيل الدخول - تسجيل الخروج",
+  "nights": "ليالٍ"
+} 

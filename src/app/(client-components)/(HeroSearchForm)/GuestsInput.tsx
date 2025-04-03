@@ -5,6 +5,7 @@ import { Popover, Transition } from "@headlessui/react";
 import NcInputNumber from "@/components/NcInputNumber";
 import { UserIcon } from "@heroicons/react/24/outline";
 import useTranslation from "@/hooks/useTranslation";
+import { usePathname } from "next/navigation";
 
 export interface GuestsInputProps {
   className?: string;
@@ -33,6 +34,8 @@ const GuestsInput: FC<GuestsInputProps> = ({
 }) => {
   // Track if component is mounted (client-side)
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
+  const isArabic = pathname?.startsWith('/ar');
   
   useEffect(() => {
     setMounted(true);
@@ -103,14 +106,34 @@ const GuestsInput: FC<GuestsInputProps> = ({
 
   // Dynamic translations - client-side only
   const t = useTranslation('search');
-  const guestsLabel = totalGuests ? t('guests') : t('addGuests');
-  const searchLabel = t('search');
-  const adultsLabel = t('adults');
-  const adultsDesc = t('ages_13_or_above');
-  const childrenLabel = t('children');
-  const childrenDesc = t('ages_2_12');
-  const infantsLabel = t('infants');
-  const infantsDesc = t('under_2');
+  
+  // Use try-catch to handle any translation errors
+  let guestsLabel, addGuestsLabel, searchLabel, adultsLabel, adultsDesc, childrenLabel, childrenDesc, infantsLabel, infantsDesc;
+  try {
+    guestsLabel = totalGuests ? t('guests') : '';
+    addGuestsLabel = t('addGuests');
+    searchLabel = t('search');
+    adultsLabel = t('adults');
+    adultsDesc = t('ages_13_or_above');
+    childrenLabel = t('children');
+    childrenDesc = t('ages_2_12');
+    infantsLabel = t('infants');
+    infantsDesc = t('under_2');
+  } catch (error) {
+    console.error("Translation error:", error);
+    guestsLabel = totalGuests ? "Guests" : "";
+    addGuestsLabel = "Add Guests";
+    searchLabel = "Search";
+    adultsLabel = "Adults";
+    adultsDesc = "Ages 13 or above";
+    childrenLabel = "Children";
+    childrenDesc = "Ages 2-12";
+    infantsLabel = "Infants";
+    infantsDesc = "Under 2";
+  }
+
+  // Calculate space class based on RTL/LTR
+  const spaceClass = isArabic ? "space-x-reverse space-x-3" : "space-x-3";
 
   // Full component with interactivity - client-side only
   return (
@@ -123,22 +146,22 @@ const GuestsInput: FC<GuestsInputProps> = ({
             }`}
           >
             <Popover.Button
-              className={`flex-1 flex text-left items-center ${fieldClassName} space-x-3`}
+              className={`flex-1 flex text-left items-center ${fieldClassName} ${spaceClass}`}
             >
               <div className="text-neutral-300 dark:text-neutral-400">
                 <UserIcon className="w-5 h-5 lg:w-7 lg:h-7" />
               </div>
               <div className="flex-grow">
                 <span suppressHydrationWarning className="block xl:text-lg font-semibold">
-                  {totalGuests > 0 ? `${totalGuests} ${guestsLabel}` : guestsLabel}
+                  {totalGuests > 0 ? `${totalGuests} ${guestsLabel}` : addGuestsLabel}
                 </span>
                 <span suppressHydrationWarning className="block mt-1 text-sm text-neutral-400 leading-none font-light">
-                  {guestsLabel}
+                  {addGuestsLabel}
                 </span>
               </div>
 
               {hasButtonSubmit && (
-                <div className="pr-2">
+                <div className={isArabic ? "pl-2" : "pr-2"}>
                   <button
                     onClick={(e) => {
                       e.preventDefault();
@@ -147,7 +170,7 @@ const GuestsInput: FC<GuestsInputProps> = ({
                     type="button"
                     className="h-12 px-4 py-3 bg-indigo-700 hover:bg-indigo-600 hover:shadow-sm rounded-full text-white font-semibold"
                   >
-                    {searchLabel}
+                    <span suppressHydrationWarning>{searchLabel}</span>
                   </button>
                 </div>
               )}

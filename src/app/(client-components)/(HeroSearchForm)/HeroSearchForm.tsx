@@ -1,14 +1,15 @@
 "use client";
 
-import React, { FC, useState } from "react";
+import React, { FC, useState, useEffect } from "react";
 import StaySearchForm from "./(stay-search-form)/StaySearchForm";
+import useTranslation from "@/hooks/useTranslation";
 
-export type SearchTab = "Stays" | "Cars";
+export type SearchTab = "Stays" ;
 
 export interface HeroSearchFormProps {
   className?: string;
   currentTab?: SearchTab;
-  currentPage?: "Stays" | "Cars";
+  currentPage?: "Stays" ;
 }
 
 const HeroSearchForm: FC<HeroSearchFormProps> = ({
@@ -16,10 +17,36 @@ const HeroSearchForm: FC<HeroSearchFormProps> = ({
   currentTab = "Stays",
   currentPage,
 }) => {
-  const tabs: SearchTab[] = ["Stays", "Cars"];
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const tabs: SearchTab[] = ["Stays"];
   const [tabActive, setTabActive] = useState<SearchTab>(
     currentTab as SearchTab || "Stays"
   );
+
+  // We need to use the specific tab namespace for translations
+  const tabsTranslation = useTranslation('tabs');
+  
+  const getTranslatedTab = (tab: SearchTab): string => {
+    if (!mounted) return tab;
+    
+    // Use try-catch to handle any errors with translations
+    try {
+      switch(tab) {
+        case "Stays":
+          return tabsTranslation('stays') || "Stays";
+        default:
+          return tab;
+      }
+    } catch (error) {
+      console.error("Translation error:", error);
+      return tab;
+    }
+  };
 
   const renderTab = () => {
     return (
@@ -39,7 +66,7 @@ const HeroSearchForm: FC<HeroSearchFormProps> = ({
               {active && (
                 <span className="block w-2.5 h-2.5 rounded-full bg-neutral-800 dark:bg-neutral-100 mr-2" />
               )}
-              <span>{tab}</span>
+              <span suppressHydrationWarning>{getTranslatedTab(tab)}</span>
             </li>
           );
         })}

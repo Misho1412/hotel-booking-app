@@ -1,0 +1,99 @@
+{
+  "title": "Listing Stay Detail",
+  "badge": "Wooden house",
+  "propertyName": "Beach House in Collingwood",
+  "location": "Tokyo, Japan",
+  "host": {
+    "prefix": "Hosted by",
+    "name": "Kevin Francis"
+  },
+  "accommodation": {
+    "guests": "guests",
+    "beds": "beds",
+    "baths": "baths",
+    "bedrooms": "bedrooms"
+  },
+  "stayInformation": {
+    "title": "Stay information",
+    "description": [
+      "Providing lake views, The Symphony 9 Tam Coc in Ninh Binh provides accommodation, an outdoor swimming pool, a bar, a shared lounge, a garden and barbecue facilities. Complimentary WiFi is provided.",
+      "There is a private bathroom with bidet in all units, along with a hairdryer and free toiletries.",
+      "The Symphony 9 Tam Coc offers a terrace. Both a bicycle rental service and a car rental service are available at the accommodation, while cycling can be enjoyed nearby."
+    ]
+  },
+  "amenities": {
+    "title": "Amenities",
+    "subtitle": "About the property's amenities and services",
+    "viewMore": "View more 20 amenities"
+  },
+  "locationSection": {
+    "title": "Location",
+    "description": "Collingwood VIC 3066, Australia",
+    "aroundTitle": "What's around",
+    "aroundItems": [
+      "Queens Museum - 15 min walk",
+      "Museum of the Moving Image - 16 min walk"
+    ]
+  },
+  "thingsToKnow": {
+    "title": "Things to know",
+    "houseRules": {
+      "title": "House Rules",
+      "items": [
+        "Check-in: 3:00 PM - 7:00 PM",
+        "Checkout before: 10:00 AM",
+        "No pets",
+        "No parties or events"
+      ]
+    },
+    "healthAndSafety": {
+      "title": "Health & Safety",
+      "items": [
+        "Carbon monoxide alarm",
+        "Smoke alarm"
+      ]
+    },
+    "cancellation": {
+      "title": "Cancellation policy",
+      "text": "Free cancellation before Jul 25. After that, cancel before Jul 30 for a partial refund."
+    }
+  },
+  "hostSection": {
+    "title": "Host Information",
+    "bio": "Kevin has been hosting for 3 years. I'm a lifestyle photographer and educator living in Northampton, England with my beautiful wife Ellie, handsome little rascal Harvey, and posh cat Pablo.",
+    "responseTime": "Response time: within an hour",
+    "responseRate": "Response rate: 100%",
+    "contactHost": "Contact host"
+  },
+  "reviews": {
+    "title": "Reviews",
+    "score": "4.96",
+    "totalReviews": "112 reviews",
+    "categories": {
+      "cleanliness": "Cleanliness",
+      "communication": "Communication",
+      "checkIn": "Check-in",
+      "accuracy": "Accuracy",
+      "location": "Location",
+      "value": "Value"
+    },
+    "showAllReviews": "Show all 112 reviews"
+  },
+  "dates": {
+    "title": "Availability",
+    "selectDates": "Select dates",
+    "checkIn": "Check in",
+    "checkOut": "Check out"
+  },
+  "sidebar": {
+    "perNight": "night",
+    "totalReviews": "reviews",
+    "guests": "guests",
+    "checkIn": "Check in",
+    "checkOut": "Check out",
+    "serviceFee": "Service fee",
+    "total": "Total",
+    "reserve": "Reserve",
+    "wonBeCharged": "You won't be charged yet"
+  }
+} 

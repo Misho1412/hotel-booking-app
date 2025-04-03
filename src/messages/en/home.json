@@ -1,0 +1,88 @@
+{
+  "hero": {
+    "title": "Find your next dream accommodation",
+    "subTitle": "Book the perfect property for your dream vacation",
+    "subtitle": "Book the perfect property for your dream vacation",
+    "placeholder": "Search properties...",
+    "suggestedSearches": "Suggested searches:",
+    "search": "Search"
+  },
+  "featured": {
+    "title": "Featured Property Types",
+    "subtitle": "Discover the best places to stay for your next trip",
+    "viewAll": "View All"
+  },
+  "benefits": {
+    "title": "Benefits",
+    "subtitle": "Happening Cities",
+    "advertising": {
+      "title": "Cost-effective advertising",
+      "description": "With a free listing, you can advertise your rental with no upfront costs"
+    },
+    "exposure": {
+      "title": "Reach millions with Chisfis",
+      "description": "Millions of people are searching for unique places to stay around the world"
+    },
+    "secure": {
+      "title": "Secure and simple",
+      "description": "A Holiday Lettings listing gives you a secure and easy way to take bookings and payments online"
+    }
+  },
+  "howItWorks": {
+    "title": "How it works",
+    "subtitle": "Keep calm & travel on",
+    "bookAndRelax": {
+      "title": "Book & relax",
+      "description": "Let each trip be an inspirational journey, each room a peaceful space"
+    },
+    "smartChecklist": {
+      "title": "Smart checklist",
+      "description": "Let each trip be an inspirational journey, each room a peaceful space"
+    },
+    "saveMore": {
+      "title": "Save more",
+      "description": "Let each trip be an inspirational journey, each room a peaceful space"
+    }
+  },
+  "featuredPlaces": {
+    "title": "Featured places to stay",
+    "subtitle": "Popular places to stay that Chisfis recommends for you",
+    "cities": {
+      "newYork": "New York",
+      "tokyo": "Tokyo",
+      "paris": "Paris",
+      "london": "London"
+    }
+  },
+  "suggestions": {
+    "title": "Suggestions for discovery",
+    "subtitle": "Popular places to stay that we recommend for you",
+    "propertyTypes": {
+      "enjoyGreatCold": "Enjoy the great cold",
+      "sleepFloatingWay": "Sleep in a floating way",
+      "billionairesHouse": "In the billionaire's house",
+      "coolDeepForest": "Cool in the deep forest",
+      "properties": "properties"
+    }
+  },
+  "exploreByStays": {
+    "title": "Explore by types of stays",
+    "subtitle": "Explore houses based on 10 types of stays"
+  },
+  "videos": {
+    "title": "The Videos 🎬",
+    "description": "Check out our hottest videos. View more and share more new perspectives on just about any topic. Everyone's welcome."
+  },
+  "newsletter": {
+    "title": "Join our newsletter 🎉",
+    "subtitle": "Read and share new perspectives on just about any topic. Everyone's welcome.",
+    "discount": "Get more discount",
+    "premium": "Get premium magazines",
+    "emailPlaceholder": "Enter your email"
+  },
+  "whyChooseUs": {
+    "title": "Why did you choose us?",
+    "description": "Accompanying us, you have a trip full of experiences. With Chisfis, booking accommodation, resort villas, hotels, private houses, apartments... becomes fast, convenient and easy.",
+    "becomeAuthor": "Become an author"
+  }
+} 

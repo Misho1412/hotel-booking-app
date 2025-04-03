@@ -1,8 +1,9 @@
-import React, { FC } from "react";
+import React, { FC, useState, useEffect } from "react";
 import { TaxonomyType } from "@/data/types";
 import convertNumbThousand from "@/utils/convertNumbThousand";
 import Link from "next/link";
 import Image from "next/image";
+import useTranslation from "@/hooks/useTranslation";
 
 export interface CardCategory4Props {
   className?: string;
@@ -14,6 +15,28 @@ const CardCategory4: FC<CardCategory4Props> = ({
   taxonomy,
 }) => {
   const { count, name, href = "/", thumbnail, listingType } = taxonomy;
+  const [mounted, setMounted] = useState(false);
+  const t = useTranslation('home');
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  // Get the translated "properties" text
+  const getPropertyText = () => {
+    if (!mounted) {
+      return (!listingType || listingType === "stay") ? "properties" : 
+             (listingType === "car" ? "cars" : "experiences");
+    }
+    
+    if (!listingType || listingType === "stay") {
+      return t('suggestions.propertyTypes.properties');
+    }
+    if (listingType === "car") return "cars";
+    if (listingType === "experiences") return "experiences";
+    return "properties";
+  };
+  
   return (
     <Link
       href={href}
@@ -43,9 +66,7 @@ const CardCategory4: FC<CardCategory4Props> = ({
         >
           {convertNumbThousand(count || 0)}
           {` `}
-          {(!listingType || listingType === "stay") && "properties"}
-          {listingType === "car" && "cars"}
-          {listingType === "experiences" && "experiences"}
+          {getPropertyText()}
         </span>
       </div>
     </Link>

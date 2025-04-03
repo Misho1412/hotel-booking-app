@@ -4,7 +4,8 @@ import Heading from "@/shared/Heading";
 import NcPlayIcon from "@/shared/NcPlayIcon";
 import NcPlayIcon2 from "@/shared/NcPlayIcon2";
 import Image from "next/image";
-import React, { FC, useState } from "react";
+import React, { FC, useState, useEffect } from "react";
+import useTranslation from "@/hooks/useTranslation";
 
 export interface VideoType {
   id: string;
@@ -56,6 +57,12 @@ const SectionVideos: FC<SectionVideosProps> = ({
 }) => {
   const [isPlay, setIsPlay] = useState(false);
   const [currentVideo, setCurrentVideo] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const t = useTranslation('home');
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const renderMainVideo = () => {
     const video: VideoType = videos[currentVideo];
@@ -128,10 +135,9 @@ const SectionVideos: FC<SectionVideosProps> = ({
   return (
     <div className={`nc-SectionVideos ${className}`}>
       <Heading
-        desc="Check out our hottest videos. View more and share more new
-          perspectives on just about any topic. Everyone’s welcome."
+        desc={mounted ? t('videos.description') : "Check out our hottest videos. View more and share more new perspectives on just about any topic. Everyone's welcome."}
       >
-        🎬 The Videos
+        {mounted ? t('videos.title') : "🎬 The Videos"}
       </Heading>
 
       <div className="flex flex-col relative sm:pr-4 sm:py-4 md:pr-6 md:py-6 xl:pr-14 xl:py-14 lg:flex-row">
