@@ -1,22 +1,80 @@
-import React, { FC } from "react";
-import { DEMO_STAY_LISTINGS } from "@/data/listings";
+import React, { FC, useState, useEffect, useCallback } from "react";
 import { StayDataType } from "@/data/types";
 import Pagination from "@/shared/Pagination";
-import TabFilters from "./TabFilters";
 import Heading2 from "@/shared/Heading2";
 import StayCard2 from "@/components/StayCard2";
+import useHotels from "@/hooks/useHotels";
+import Spinner from "@/shared/Spinner";
+import Alert from "@/shared/Alert";
+import ButtonPrimary from "@/shared/ButtonPrimary";
+import CityTabs from "./components/CityTabs";
 
 export interface SectionGridFilterCardProps {
   className?: string;
-  data?: StayDataType[];
 }
-
-const DEMO_DATA: StayDataType[] = DEMO_STAY_LISTINGS.filter((_, i) => i < 8);
 
 const SectionGridFilterCard: FC<SectionGridFilterCardProps> = ({
   className = "",
-  data = DEMO_DATA,
 }) => {
+  const [activeCity, setActiveCity] = useState<string>("All");
+  const [shouldFetch, setShouldFetch] = useState<{city?: string, isInitial: boolean}>({
+    isInitial: true
+  });
+  
+  const {
+    isLoading,
+    error,
+    stayData,
+    pagination,
+    fetchHotels,
+    goToPage
+  } = useHotels({
+    // Don't auto-fetch - we'll control this manually
+    autoFetch: false
+  });
+
+  // Initial fetch on mount and when filters change
+  useEffect(() => {
+    const params: any = { page: 1, page_size: 12 };
+    
+    // Only add city filter if it's not "All"
+    if (shouldFetch.city && shouldFetch.city !== "All") {
+      params.city = shouldFetch.city;
+    }
+    
+    console.log("Fetching hotels with params:", params);
+    fetchHotels(params);
+    
+  }, [fetchHotels, shouldFetch]);
+
+  // Handle tab change
+  const handleTabChange = useCallback((tab: string) => {
+    console.log("Tab changed to:", tab);
+    setActiveCity(tab);
+    
+    // Don't trigger fetch directly from here
+    setShouldFetch({
+      city: tab,
+      isInitial: false
+    });
+  }, []);
+  
+  // Handle retry
+  const handleRetry = useCallback(() => {
+    setShouldFetch(prev => ({...prev, isInitial: false}));
+  }, []);
+
+  // Handle page change
+  const handlePageChange = useCallback((page: number) => {
+    const params: any = { page, page_size: 12 };
+    
+    if (activeCity !== "All") {
+      params.city = activeCity;
+    }
+    
+    fetchHotels(params);
+  }, [activeCity, fetchHotels]);
+
   return (
     <div
       className={`nc-SectionGridFilterCard ${className}`}
@@ -25,16 +83,69 @@ const SectionGridFilterCard: FC<SectionGridFilterCardProps> = ({
       <Heading2 />
 
       <div className="mb-8 lg:mb-11">
-        <TabFilters />
+        <CityTabs tabActive={activeCity} onTabChange={handleTabChange} />
       </div>
-      <div className="grid grid-cols-1 gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {data.map((stay) => (
-          <StayCard2 key={stay.id} data={stay} />
-        ))}
-      </div>
-      <div className="flex mt-16 justify-center items-center">
-        <Pagination />
-      </div>
+
+      {/* LOADING STATE */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-10">
+          <Spinner className="h-10 w-10" />
+          <span className="ml-4 text-lg">Loading hotels...</span>
+        </div>
+      )}
+
+      {/* ERROR STATE */}
+      {error && !isLoading && (
+        <Alert type="error" className="mb-8">
+          <div>
+            <p className="font-medium">Error loading hotels: {error.message}</p>
+            <p className="mt-2">We couldn't load hotels from the backend. Please try again.</p>
+            <button 
+              className="underline mt-2 font-medium" 
+              onClick={handleRetry}
+            >
+              Retry
+            </button>
+          </div>
+        </Alert>
+      )}
+
+      {/* EMPTY STATE */}
+      {!isLoading && !error && stayData.length === 0 && (
+        <div className="text-center py-10">
+          <h3 className="text-lg font-medium mb-4">No hotels found</h3>
+          <p className="mb-4 text-neutral-500">
+            We couldn't find any hotels matching your criteria.
+          </p>
+          {activeCity !== "All" && (
+            <ButtonPrimary onClick={() => handleTabChange("All")}>
+              View All Hotels
+            </ButtonPrimary>
+          )}
+        </div>
+      )}
+
+      {/* HOTELS GRID */}
+      {!isLoading && !error && stayData.length > 0 && (
+        <>
+          <div className="grid grid-cols-1 gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {stayData.map((stay) => (
+              <StayCard2 key={stay.id} data={stay} />
+            ))}
+          </div>
+          
+          {/* PAGINATION */}
+          {pagination.totalPages > 1 && (
+            <div className="flex mt-16 justify-center items-center">
+              <Pagination 
+                currentPage={pagination.currentPage}
+                totalPage={pagination.totalPages}
+                onChange={handlePageChange}
+              />
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

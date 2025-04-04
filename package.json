@@ -9,17 +9,20 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@formatjs/intl-localematcher": "^0.6.1",
     "@headlessui/react": "^1.7.14",
     "@heroicons/react": "^2.0.18",
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/forms": "^0.5.3",
     "@tailwindcss/typography": "^0.5.9",
+    "@tanstack/react-query": "^5.71.5",
     "@types/google-map-react": "^2.1.7",
     "@types/node": "20.2.3",
     "@types/react": "18.2.7",
     "@types/react-datepicker": "^4.11.2",
     "@types/react-dom": "18.2.4",
     "aos": "^2.3.4",
+    "axios": "^1.8.4",
     "client-only": "^0.0.1",
     "clsx": "^2.1.1",
     "eslint": "8.41.0",
@@ -27,6 +30,7 @@
     "framer-motion": "^10.18.0",
     "google-map-react": "^2.2.1",
     "lodash": "^4.17.21",
+    "negotiator": "^1.0.0",
     "next": "^13.4.19",
     "next-auth": "^4.23.1",
     "next-intl": "^4.0.2",
@@ -45,10 +49,12 @@
     "server-only": "^0.0.1",
     "tailwind-merge": "^3.0.2",
     "three": "^0.175.0",
-    "typescript": "5.0.4"
+    "typescript": "5.0.4",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/aos": "^3.0.7",
+    "@types/negotiator": "^0.6.3",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.23",
     "tailwindcss": "^3.3.2"

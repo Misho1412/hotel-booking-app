@@ -9,6 +9,9 @@ import { variants } from "@/utils/animationVariants";
 import Link from "next/link";
 import { Route } from "@/routers/types";
 
+// Default placeholder image - should match the one in adapters.ts
+const DEFAULT_IMAGE = "/images/placeholder-large.png";
+
 export interface GallerySliderProps {
   className?: string;
   galleryImgs: (StaticImageData | string)[];
@@ -22,7 +25,7 @@ export interface GallerySliderProps {
 
 export default function GallerySlider({
   className = "",
-  galleryImgs,
+  galleryImgs = [],
   ratioClass = "aspect-w-4 aspect-h-3",
   imageClass = "",
   uniqueID = "uniqueID",
@@ -33,7 +36,11 @@ export default function GallerySlider({
   const [loaded, setLoaded] = useState(false);
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(0);
-  const images = galleryImgs;
+  
+  // Ensure images is always an array, with a default image if empty
+  const images = Array.isArray(galleryImgs) && galleryImgs.length > 0 
+    ? galleryImgs 
+    : [DEFAULT_IMAGE];
 
   function changePhotoId(newVal: number) {
     if (newVal > index) {
@@ -46,7 +53,7 @@ export default function GallerySlider({
 
   const handlers = useSwipeable({
     onSwipedLeft: () => {
-      if (index < images?.length - 1) {
+      if (index < images.length - 1) {
         changePhotoId(index + 1);
       }
     },
@@ -58,7 +65,8 @@ export default function GallerySlider({
     trackMouse: true,
   });
 
-  let currentImage = images[index];
+  // Get current image with a safeguard in case of out-of-bounds index
+  const currentImage = images[index] || images[0] || DEFAULT_IMAGE;
 
   return (
     <MotionConfig
@@ -88,7 +96,7 @@ export default function GallerySlider({
                 className="absolute inset-0"
               >
                 <Image
-                  src={currentImage || ""}
+                  src={currentImage}
                   fill
                   alt="listing card gallery"
                   className={`object-cover ${imageClass}`}
@@ -103,7 +111,7 @@ export default function GallerySlider({
         {/* Buttons + bottom nav bar */}
         <>
           {/* Buttons */}
-          {loaded && navigation && (
+          {loaded && navigation && images.length > 1 && (
             <div className="opacity-0 group-hover/cardGallerySlider:opacity-100 transition-opacity ">
               {index > 0 && (
                 <button
@@ -127,18 +135,22 @@ export default function GallerySlider({
           )}
 
           {/* Bottom Nav bar */}
-          <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-neutral-900 opacity-50 rounded-b-lg"></div>
-          <div className="flex items-center justify-center absolute bottom-2 left-1/2 transform -translate-x-1/2 space-x-1.5">
-            {images.map((_, i) => (
-              <button
-                className={`w-1.5 h-1.5 rounded-full ${
-                  i === index ? "bg-white" : "bg-white/60 "
-                }`}
-                onClick={() => changePhotoId(i)}
-                key={i}
-              />
-            ))}
-          </div>
+          {images.length > 1 && (
+            <>
+              <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-neutral-900 opacity-50 rounded-b-lg"></div>
+              <div className="flex items-center justify-center absolute bottom-2 left-1/2 transform -translate-x-1/2 space-x-1.5">
+                {images.map((_, i) => (
+                  <button
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      i === index ? "bg-white" : "bg-white/60 "
+                    }`}
+                    onClick={() => changePhotoId(i)}
+                    key={i}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </>
       </div>
     </MotionConfig>

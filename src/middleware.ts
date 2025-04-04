@@ -14,8 +14,23 @@ const intlMiddleware = createMiddleware({
 export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Special case for listing-stay-detail route - redirect to localized version
-  if (pathname === '/listing-stay-detail' || pathname.startsWith('/listing-stay-detail/')) {
+  // Special case for routes that need redirection to localized versions
+  const pathsToRedirect = [
+    '/listing-stay-detail', 
+    '/listing-car-detail', 
+    '/listing-experiences-detail',
+    '/listing-stay-map',
+    '/listing-stay',
+    '/login',
+    '/signup',
+    '/forgot-password'
+  ];
+  
+  const shouldRedirect = pathsToRedirect.some(path => 
+    pathname === path || pathname.startsWith(`${path}/`)
+  );
+  
+  if (shouldRedirect) {
     // Get locale from cookie or default to 'en'
     const locale = request.cookies.get('NEXT_LOCALE')?.value || defaultLocale;
     const newUrl = request.nextUrl.clone();

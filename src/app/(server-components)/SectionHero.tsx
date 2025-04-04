@@ -1,11 +1,14 @@
 "use client";
 
-import React, { FC } from "react";
+import React, { FC, useEffect, useState } from "react";
 import imagePng from "@/images/hero-right.png";
 import HeroSearchForm from "../(client-components)/(HeroSearchForm)/HeroSearchForm";
 import Image from "next/image";
 import ButtonPrimary from "@/shared/ButtonPrimary";
 import useTranslation from "@/hooks/useTranslation";
+import { getLocalizedUrl } from "@/utils/getLocalizedUrl";
+import { useParams } from "next/navigation";
+import { Route } from "next";
 
 export interface SectionHeroProps {
   className?: string;
@@ -13,6 +16,13 @@ export interface SectionHeroProps {
 
 const SectionHero: FC<SectionHeroProps> = ({ className = "" }) => {
   const t = useTranslation('home');
+  const [mounted, setMounted] = useState(false);
+  const params = useParams();
+  const locale = params?.locale as string;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div
@@ -36,7 +46,7 @@ const SectionHero: FC<SectionHeroProps> = ({ className = "" }) => {
             {t('hero.subtitle')}
           </span>
           <ButtonPrimary 
-            href="/listing-stay-map" 
+            href={getLocalizedUrl("/listing-stay-map", locale) as Route}
             sizeClass="px-5 py-4 sm:px-7"
             data-aos="fade-up"
             data-aos-delay="600"

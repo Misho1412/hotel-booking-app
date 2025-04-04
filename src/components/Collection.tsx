@@ -1,7 +1,10 @@
-import React, { FC } from "react";
+import React, { FC, useEffect, useState } from "react";
 import ButtonSecondary from "@/shared/ButtonSecondary";
 import Link from "next/link";
 import Image from "next/image";
+import { getLocalizedUrl } from "@/utils/getLocalizedUrl";
+import { useParams } from "next/navigation";
+import { Route } from "next";
 
 export interface CollectionProps {
   className?: string;
@@ -18,8 +21,16 @@ const Collection: FC<CollectionProps> = ({
   desc = "The most popular <br /> in the world",
   color,
 }) => {
+  const [mounted, setMounted] = useState(false);
+  const params = useParams();
+  const locale = params?.locale as string;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
-    <Link href={"/listing-stay"} className={`nc-Collection block ${className}`}>
+    <Link href={getLocalizedUrl("/listing-stay", locale) as Route} className={`nc-Collection block ${className}`}>
       <div
         className={`relative w-full aspect-w-16 aspect-h-11 sm:aspect-h-10 h-0 rounded-2xl overflow-hidden group ${color}`}
       >

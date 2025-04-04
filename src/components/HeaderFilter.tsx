@@ -1,42 +1,63 @@
 "use client";
 
-import React, { FC, useEffect, useState, ReactNode } from "react";
-import Heading from "@/shared/Heading";
+import React, { FC, useState, useEffect } from "react";
 import Nav from "@/shared/Nav";
 import NavItem from "@/shared/NavItem";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import ButtonSecondary from "@/shared/ButtonSecondary";
-import { ArrowRightIcon } from "@heroicons/react/24/outline";
+import { getLocalizedUrl } from "@/utils/getLocalizedUrl";
+import { useParams } from "next/navigation";
+import { Route } from "next";
 
 export interface HeaderFilterProps {
-  tabActive: string;
-  tabs: string[];
-  heading: ReactNode;
-  subHeading?: ReactNode;
-  onClickTab?: (item: string) => void;
+  tabActive?: string;
+  tabs?: string[];
+  heading?: string;
+  subHeading?: string;
+  onTabChange?: (tab: string) => void;
 }
 
 const HeaderFilter: FC<HeaderFilterProps> = ({
-  tabActive,
-  tabs,
-  subHeading = "",
-  heading = "Latest Articles 🎈",
-  onClickTab = () => {},
+  tabActive = "All",
+  tabs = ["All", "New York", "Tokyo", "Paris", "London"],
+  subHeading = "Popular places to stay that Chisfis recommends for you",
+  heading = "Featured places to stay",
+  onTabChange,
 }) => {
-  const [tabActiveState, setTabActiveState] = useState(tabActive);
+  const [mounted, setMounted] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>(tabActive);
+  const params = useParams();
+  const locale = params?.locale as string;
 
   useEffect(() => {
-    setTabActiveState(tabActive);
-  }, [tabActive]);
+    setMounted(true);
+  }, []);
 
-  const handleClickTab = (item: string) => {
-    onClickTab(item);
-    setTabActiveState(item);
+  // Handle tab change and pass to parent if callback is defined
+  const handleTabChange = (item: string) => {
+    setActiveTab(item);
+    if (onTabChange) {
+      onTabChange(item);
+    }
   };
 
   return (
-    <div className="flex flex-col mb-8 relative">
-      <Heading desc={subHeading}>{heading}</Heading>
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col mb-12 md:mb-16 relative">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between">
+        <div className="max-w-2xl">
+          <h2 className="text-3xl md:text-4xl font-semibold">{heading}</h2>
+          <span className="mt-2 md:mt-4 font-normal block text-base sm:text-lg text-neutral-500 dark:text-neutral-400">
+            {subHeading}
+          </span>
+        </div>
+        <div className="mt-4 flex sm:justify-end">
+          <ButtonSecondary href={getLocalizedUrl("/listing-stay", locale) as Route} className="!leading-none">
+            <span>View all</span>
+            <ChevronDownIcon className="w-4 h-4 ml-2 -rotate-90" />
+          </ButtonSecondary>
+        </div>
+      </div>
+      <div className="flex items-center justify-between mt-8">
         <Nav
           className="sm:space-x-2"
           containerClassName="relative flex w-full overflow-x-auto text-sm md:text-base hiddenScrollbar"
@@ -44,21 +65,13 @@ const HeaderFilter: FC<HeaderFilterProps> = ({
           {tabs.map((item, index) => (
             <NavItem
               key={index}
-              isActive={tabActiveState === item}
-              onClick={() => handleClickTab(item)}
+              isActive={activeTab === item}
+              onClick={() => handleTabChange(item)}
             >
               {item}
             </NavItem>
           ))}
         </Nav>
-        <span className="hidden sm:block flex-shrink-0">
-          <ButtonSecondary href="/listing-stay" className="!leading-none">
-            <div className="flex items-center justify-center">
-              <span>View all</span>
-              <ArrowRightIcon className="w-5 h-5 ml-3" />
-            </div>
-          </ButtonSecondary>
-        </span>
       </div>
     </div>
   );
