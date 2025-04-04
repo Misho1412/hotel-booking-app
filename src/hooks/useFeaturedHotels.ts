@@ -128,22 +128,22 @@ export function useFeaturedHotels(limit: number = 8, city?: string) {
             images: hotels[0].images ? hotels[0].images.length : 0
           });
         }
-      } catch (serviceError) {
-        console.error('Error from hotel service:', serviceError);
+      } catch (error: any) {
+        console.error('Error from hotel service:', error);
         // Try to extract detailed error information
         let errorDetails = '';
-        if (serviceError.response) {
-          console.error('Response status:', serviceError.response.status);
-          console.error('Response data:', serviceError.response.data);
-          errorDetails = ` (Status: ${serviceError.response.status})`;
+        if (error.response) {
+          console.error('Response status:', error.response.status);
+          console.error('Response data:', error.response.data);
+          errorDetails = ` (Status: ${error.response.status})`;
         }
         
         // If we have retry attempts left, throw to trigger retry
         if (retryCountRef.current < MAX_RETRY_ATTEMPTS) {
-          throw serviceError;
+          throw error;
         }
         // Otherwise, propagate error to be handled in the catch block
-        throw new Error(`Failed to fetch hotels after ${MAX_RETRY_ATTEMPTS + 1} attempts: ${getErrorMessage(serviceError)}${errorDetails}`);
+        throw new Error(`Failed to fetch hotels after ${MAX_RETRY_ATTEMPTS + 1} attempts: ${getErrorMessage(error)}${errorDetails}`);
       }
       
       // If we got zero hotels and have retries left, throw to trigger retry

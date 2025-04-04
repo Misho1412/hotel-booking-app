@@ -19,7 +19,7 @@ const HotelListing: React.FC<HotelListingProps> = ({
   heading = "Find Your Perfect Stay",
   subHeading = "Browse our selection of quality hotels around the world",
   className = "",
-  initialParams = { page: 1, page_size: 12 }
+  initialParams = { page: 1, page_size: 8 }
 }) => {
   const [filterCity, setFilterCity] = useState<string>("");
   const [filterStars, setFilterStars] = useState<number | undefined>(undefined);
@@ -195,7 +195,7 @@ const HotelListing: React.FC<HotelListingProps> = ({
       {/* STATUS */}
       {isLoading && (
         <div className="flex items-center justify-center p-8">
-          <Spinner size="lg" />
+          <Spinner className="h-10 w-10" />
           <span className="ml-4 text-lg">Loading hotels...</span>
         </div>
       )}

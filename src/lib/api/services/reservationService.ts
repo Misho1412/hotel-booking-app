@@ -92,7 +92,7 @@ const reservationService = {
       // Create headers with token if available
       const headers: Record<string, string> = {};
       if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        headers['Authorization'] = `Token ${token}`;
       } else {
         console.error('No authentication token available for viewing reservations');
         throw new Error('Authentication required to view your reservations');
@@ -134,7 +134,7 @@ const reservationService = {
       // Create headers with token if available
       const headers: Record<string, string> = {};
       if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        headers['Authorization'] = `Token ${token}`;
       } else {
         console.error('No authentication token available for viewing reservation');
         throw new Error('Authentication required to view reservation details');
@@ -170,7 +170,16 @@ const reservationService = {
       // Validate request data
       const validatedReservationData = validateRequest(ReservationRequestSchema, reservationData);
       
-      const response = await apiClient.post<any>('/api/reservations/', validatedReservationData);
+      // Get the token directly to make sure it's available
+      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+      
+      // Create headers with token if available
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Token ${token}`;
+      }
+      
+      const response = await apiClient.post<any>('/api/reservations/', validatedReservationData, { headers });
       
       console.log('Create reservation response:', response.status);
       
@@ -195,7 +204,16 @@ const reservationService = {
       // Validate request data
       const validatedReservationData = validateRequest(ReservationRequestSchema, reservationData);
       
-      const response = await apiClient.put<any>(`/api/reservations/${reservationId}/`, validatedReservationData);
+      // Get the token directly to make sure it's available
+      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+      
+      // Create headers with token if available
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Token ${token}`;
+      }
+      
+      const response = await apiClient.put<any>(`/api/reservations/${reservationId}/`, validatedReservationData, { headers });
       
       console.log('Update reservation response:', response.status);
       
@@ -220,7 +238,16 @@ const reservationService = {
       // Validate request data
       const validatedReservationData = validateRequest(PatchedReservationRequestSchema, reservationData);
       
-      const response = await apiClient.patch<any>(`/api/reservations/${reservationId}/`, validatedReservationData);
+      // Get the token directly to make sure it's available
+      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+      
+      // Create headers with token if available
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Token ${token}`;
+      }
+      
+      const response = await apiClient.patch<any>(`/api/reservations/${reservationId}/`, validatedReservationData, { headers });
       
       console.log('Patch reservation response:', response.status);
       
@@ -240,7 +267,16 @@ const reservationService = {
    */
   deleteReservation: async (reservationId: string): Promise<void> => {
     try {
-      await apiClient.delete(`/api/reservations/${reservationId}/`);
+      // Get the token directly to make sure it's available
+      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+      
+      // Create headers with token if available
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Token ${token}`;
+      }
+      
+      await apiClient.delete(`/api/reservations/${reservationId}/`, { headers });
     } catch (error: any) {
       console.error('Delete reservation error:', error);
       throw new Error(`Failed to delete reservation: ${error.message}`);

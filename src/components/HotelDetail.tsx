@@ -10,31 +10,31 @@ import ButtonSecondary from "@/shared/ButtonSecondary";
 import ButtonPrimary from "@/shared/ButtonPrimary";
 import useHotels from "@/hooks/useHotels";
 import { IHotel } from "@/lib/api/schemas/hotel";
-import { Amenity } from "@/components/StayCard2";
+import Amenity from "@/components/Amenity";
 import Spinner from "@/shared/Spinner";
 import Alert from "@/shared/Alert";
 import CheckAvailabilityForm, { BookingFormData } from "@/components/CheckAvailabilityForm";
 import { useRouter } from "next/navigation";
 
 export interface HotelDetailProps {
-  slug: string;
+  id: string;
 }
 
-const HotelDetail: React.FC<HotelDetailProps> = ({ slug }) => {
+const HotelDetail: React.FC<HotelDetailProps> = ({ id }) => {
   const router = useRouter();
   const [isBookingLoading, setIsBookingLoading] = useState(false);
-  const { isLoading, error, stayData, hotels, fetchHotelBySlug } = useHotels({
+  const { isLoading, error, stayData, hotels, fetchHotelById } = useHotels({
     autoFetch: false,
   });
 
   // Fetch hotel data when component mounts
   useEffect(() => {
-    if (slug) {
-      fetchHotelBySlug(slug).catch(error => {
+    if (id) {
+      fetchHotelById(id).catch(error => {
         console.error("Failed to fetch hotel details:", error);
       });
     }
-  }, [slug, fetchHotelBySlug]);
+  }, [id, fetchHotelById]);
 
   // Handle error state
   if (error) {
@@ -61,7 +61,7 @@ const HotelDetail: React.FC<HotelDetailProps> = ({ slug }) => {
   if (!stayData || !stayData.length || !hotels || !hotels.length) {
     return (
       <div className="container mx-auto py-10">
-        <Alert>No hotel details found for this slug.</Alert>
+        <Alert>No hotel details found for this id.</Alert>
       </div>
     );
   }
@@ -75,7 +75,7 @@ const HotelDetail: React.FC<HotelDetailProps> = ({ slug }) => {
       // This would be replaced with actual booking logic when API is ready
       // For now we'll just simulate a delay and redirect
       await new Promise(resolve => setTimeout(resolve, 800));
-      router.push(`/checkout/${hotel.slug}`);
+      router.push(`/checkout/${hotel.id}`);
     } catch (error) {
       console.error("Booking error:", error);
       alert("There was an error processing your booking request. Please try again later.");
@@ -128,9 +128,19 @@ const HotelDetail: React.FC<HotelDetailProps> = ({ slug }) => {
               <div className="mb-4">
                 <h3 className="text-lg font-semibold mb-2">Amenities</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {hotel.amenities.map((amenity, index) => (
-                    <Amenity key={index} name={amenity.name} icon={amenity.icon} />
-                  ))}
+                  {hotel.amenities && Array.isArray(hotel.amenities) && hotel.amenities.map((amenity, index) => {
+                    // Make sure we safely handle different amenity object formats
+                    const name = typeof amenity === 'string' ? amenity : 
+                           (amenity && typeof amenity === 'object' && amenity.name) ? amenity.name : 'Amenity';
+                    const icon = (amenity && typeof amenity === 'object' && amenity.icon) ? amenity.icon : undefined;
+                    
+                    return (
+                      <Amenity key={index} name={name} icon={icon} />
+                    );
+                  })}
+                  {(!hotel.amenities || !Array.isArray(hotel.amenities) || hotel.amenities.length === 0) && (
+                    <span className="text-neutral-500 col-span-2 sm:col-span-3">No amenities information available</span>
+                  )}
                 </div>
               </div>
               
@@ -209,7 +219,7 @@ const HotelDetail: React.FC<HotelDetailProps> = ({ slug }) => {
               <h3 className="text-xl font-semibold mb-4">Location</h3>
               <div className="aspect-w-16 aspect-h-9 sm:aspect-h-6 rounded-xl overflow-hidden bg-neutral-200">
                 <iframe 
-                  src={`https://maps.google.com/maps?q=${hotel.address.latitude || 0},${hotel.address.longitude || 0}&hl=en&z=14&output=embed`}
+                  src={`https://maps.google.com/maps?q=${hotel.address?.latitude || 0},${hotel.address?.longitude || 0}&hl=en&z=14&output=embed`}
                   title="Hotel location"
                   className="w-full h-full"
                   loading="lazy"
@@ -217,10 +227,10 @@ const HotelDetail: React.FC<HotelDetailProps> = ({ slug }) => {
               </div>
               <div className="mt-4 space-y-1 text-sm text-neutral-700">
                 <p className="font-medium">{hotel.name}</p>
-                <p>{hotel.address.address_line1}</p>
-                {hotel.address.address_line2 && <p>{hotel.address.address_line2}</p>}
-                <p>{`${hotel.address.city}, ${hotel.address.state} ${hotel.address.zip_code}`}</p>
-                <p>{hotel.address.country}</p>
+                <p>{hotel.address?.address_line1 || ''}</p>
+                {hotel.address?.address_line2 && <p>{hotel.address.address_line2}</p>}
+                <p>{`${hotel.address?.city || ''}, ${hotel.address?.state || ''} ${hotel.address?.zip_code || ''}`}</p>
+                <p>{hotel.address?.country || ''}</p>
               </div>
             </div>
             
@@ -237,7 +247,7 @@ const HotelDetail: React.FC<HotelDetailProps> = ({ slug }) => {
             <div className="sticky top-24">
               <CheckAvailabilityForm 
                 hotelId={hotel.id}
-                hotelSlug={hotel.slug}
+                hotelSlug={hotel.slug || String(hotel.id)}
                 pricePerNight={data.price}
                 onCheckAvailability={handleCheckAvailability}
               />
@@ -267,12 +277,12 @@ const HotelDetail: React.FC<HotelDetailProps> = ({ slug }) => {
                       <span>Before {hotel.check_out_time || "11:00 AM"}</span>
                     </div>
                   </div>
-                  {hotel.policy && (
+                  {(hotel as any).policy && (
                     <div className="flex items-start">
                       <i className="las la-info-circle text-lg mr-2 text-neutral-600"></i>
                       <div>
                         <span className="font-medium block">House rules</span>
-                        <span>{hotel.policy}</span>
+                        <span>{(hotel as any).policy}</span>
                       </div>
                     </div>
                   )}

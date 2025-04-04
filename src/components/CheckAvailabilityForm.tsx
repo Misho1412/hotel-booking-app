@@ -108,8 +108,11 @@ const CheckAvailabilityForm: React.FC<CheckAvailabilityFormProps> = ({
       const checkInStr = format(checkInDate, 'yyyy-MM-dd');
       const checkOutStr = format(checkOutDate, 'yyyy-MM-dd');
       
+      // Use hotelId if hotelSlug is undefined
+      const identifier = hotelSlug || hotelId;
+      
       router.push(
-        `/checkout/${hotelSlug}?checkIn=${checkInStr}&checkOut=${checkOutStr}&guests=${guests}&nights=${nights}&total=${totalPrice}`
+        `/checkout/${identifier}?checkIn=${checkInStr}&checkOut=${checkOutStr}&guests=${guests}&nights=${nights}&total=${totalPrice}`
       );
       
       setIsLoading(false);

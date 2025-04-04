@@ -73,8 +73,18 @@ const paymentService = {
    */
   getUserPayments: async (page?: number, pageSize?: number): Promise<PaginatedPaymentList> => {
     try {
+      // Get token for authentication
+      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+      
+      // Create headers with token if available
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Token ${token}`;
+      }
+      
       const response = await apiClient.get<PaginatedPaymentList>('/payments/user', { 
-        params: { page, page_size: pageSize } 
+        params: { page, page_size: pageSize },
+        headers
       });
       
       // Validate response data
@@ -94,7 +104,16 @@ const paymentService = {
    */
   getPayment: async (paymentId: string): Promise<Payment> => {
     try {
-      const response = await apiClient.get<Payment>(`/payments/${paymentId}`);
+      // Get token for authentication
+      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+      
+      // Create headers with token if available
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Token ${token}`;
+      }
+      
+      const response = await apiClient.get<Payment>(`/payments/${paymentId}`, { headers });
       
       // Validate response data
       const validatedResponse = validateResponse(PaymentSchema, response.data);
@@ -116,7 +135,16 @@ const paymentService = {
       // Validate request data
       const validatedPaymentData = validateRequest(PaymentRequestSchema, paymentData);
       
-      const response = await apiClient.post<Payment>('/payments', validatedPaymentData);
+      // Get token for authentication
+      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+      
+      // Create headers with token if available
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Token ${token}`;
+      }
+      
+      const response = await apiClient.post<Payment>('/payments', validatedPaymentData, { headers });
       
       // Validate response data
       const validatedResponse = validateResponse(PaymentSchema, response.data);
@@ -216,7 +244,16 @@ const paymentService = {
       // Validate request data
       const validatedPaymentData = validateRequest(PaymentRequestSchema, paymentData);
       
-      const response = await apiClient.post<Payment>('/payments/process', validatedPaymentData);
+      // Get token for authentication
+      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+      
+      // Create headers with token if available
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Token ${token}`;
+      }
+      
+      const response = await apiClient.post<Payment>('/payments/process', validatedPaymentData, { headers });
       
       // Validate response data
       const validatedResponse = validateResponse(PaymentSchema, response.data);

@@ -42,8 +42,8 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
   const locale = params?.locale as string;
   const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState({
-    username: "",
-    password: "",
+    username: "anasos20",
+    password: "Welcome@1",
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

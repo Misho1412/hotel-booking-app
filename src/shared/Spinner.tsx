@@ -2,12 +2,21 @@ import React from 'react';
 
 interface SpinnerProps {
   className?: string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-const Spinner: React.FC<SpinnerProps> = ({ className = "h-6 w-6" }) => {
+const Spinner: React.FC<SpinnerProps> = ({ className = "", size = 'md' }) => {
+  const sizeClasses = {
+    sm: 'h-4 w-4',
+    md: 'h-6 w-6',
+    lg: 'h-8 w-8'
+  };
+  
+  const sizeClass = sizeClasses[size];
+  
   return (
     <svg
-      className={`animate-spin text-primary ${className}`}
+      className={`animate-spin text-primary ${sizeClass} ${className}`}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"

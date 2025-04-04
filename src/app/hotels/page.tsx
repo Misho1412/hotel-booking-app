@@ -17,7 +17,7 @@ export default function HotelsPage() {
           <HotelListing 
             heading="All Available Hotels" 
             subHeading="Find your perfect stay from our carefully selected properties"
-            initialParams={{ page: 1, page_size: 16 }}
+            initialParams={{ page: 1, page_size: 8 }}
           />
         </div>
         

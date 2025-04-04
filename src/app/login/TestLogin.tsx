@@ -4,7 +4,7 @@ const TestLogin = () => {
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [format, setFormat] = useState('username_password');
+  const [format, setFormat] = useState('user_provided');
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   
   // Check for existing token on mount
@@ -17,21 +17,17 @@ const TestLogin = () => {
   
   // Define different login format options
   const loginFormats = {
+    'user_provided': {
+      label: 'User Provided Credentials',
+      body: { username: 'anasos20', password: 'Welcome@1' }
+    },
     'username_password': {
       label: 'Username/Password',
-      body: { username: 'testusername', password: '123' }
-    },
-    'string_values': {
-      label: 'String Values',
-      body: { username: 'string', password: 'string' }
-    },
-    'email_as_username': {
-      label: 'Email as Username',
-      body: { username: 'admin@example.com', password: 'admin123' }
+      body: { username: 'anasos20', password: 'Welcome@1' }
     },
     'test_user': {
       label: 'Test User',
-      body: { username: 'testusername', password: '123' }
+      body: { username: 'anasos20', password: 'Welcome@1' }
     }
   };
   

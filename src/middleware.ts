@@ -23,7 +23,8 @@ export default function middleware(request: NextRequest) {
     '/listing-stay',
     '/login',
     '/signup',
-    '/forgot-password'
+    '/forgot-password',
+    '/hotels'
   ];
   
   const shouldRedirect = pathsToRedirect.some(path => 

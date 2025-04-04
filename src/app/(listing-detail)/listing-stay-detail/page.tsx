@@ -683,7 +683,7 @@ const ListingStayDetailPage: FC<ListingStayDetailPageProps> = ({}) => {
         {/* Content */}
         <div className="space-y-5">
           <div className="flex items-center space-x-2">
-            <FiveStartIconForRate iconClass="w-6 h-6" className="space-x-0.5" />
+          <FiveStartIconForRate iconClass="w-6 h-6" className="space-x-0.5" />
             <span className="font-medium">{mounted ? t('reviews.score') : "4.96"}</span>
             <span>·</span>
             <span>{mounted ? t('reviews.totalReviews') : "112 reviews"}</span>
@@ -786,7 +786,7 @@ const ListingStayDetailPage: FC<ListingStayDetailPageProps> = ({}) => {
 
         {/* CONTENT */}
         <div className="listingSection__wrap__DayPickerRangeController">
-          <div>
+        <div>
             <SectionDateRange />
           </div>
         </div>
@@ -823,27 +823,27 @@ const ListingStayDetailPage: FC<ListingStayDetailPageProps> = ({}) => {
         <form className="flex flex-col border border-neutral-200 dark:border-neutral-700 rounded-3xl ">
           <StayDatesRangeInput className="flex-1 z-[11]" />
           <div className="mt-6">
-            <GuestsInput className="flex-1" />
+          <GuestsInput className="flex-1" />
           </div>
 
-          {/* SUM */}
+        {/* SUM */}
           <div className="flex flex-col space-y-4 mt-8">
             <div className="flex justify-between">
               <span className="font-semibold">$119 x 3 {mounted ? t('sidebar.perNight') : "night"}</span>
-              <span>$357</span>
-            </div>
+            <span>$357</span>
+          </div>
             <div className="flex justify-between">
               <span className="font-semibold">{mounted ? t('sidebar.serviceFee') : "Service fee"}</span>
               <span>$10</span>
-            </div>
-            <div className="border-b border-neutral-200 dark:border-neutral-700"></div>
-            <div className="flex justify-between font-semibold">
+          </div>
+          <div className="border-b border-neutral-200 dark:border-neutral-700"></div>
+          <div className="flex justify-between font-semibold">
               <span>{mounted ? t('sidebar.total') : "Total"}</span>
               <span>$367</span>
             </div>
-          </div>
+        </div>
 
-          {/* SUBMIT */}
+        {/* SUBMIT */}
           <ButtonPrimary href="##">
             {mounted ? t('sidebar.reserve') : "Reserve"}
           </ButtonPrimary>
@@ -862,57 +862,57 @@ const ListingStayDetailPage: FC<ListingStayDetailPageProps> = ({}) => {
       {/* SINGLE HEADER */}
       <>
         <header className="container 2xl:px-14 rounded-md sm:rounded-xl">
-          <div className="relative grid grid-cols-3 sm:grid-cols-4 gap-1 sm:gap-2">
-            <div
-              className="col-span-2 row-span-3 sm:row-span-2 relative rounded-md sm:rounded-xl overflow-hidden cursor-pointer"
-              onClick={handleOpenModalImageGallery}
-            >
-              <Image
+        <div className="relative grid grid-cols-3 sm:grid-cols-4 gap-1 sm:gap-2">
+          <div
+            className="col-span-2 row-span-3 sm:row-span-2 relative rounded-md sm:rounded-xl overflow-hidden cursor-pointer"
+            onClick={handleOpenModalImageGallery}
+          >
+            <Image
                 className="absolute inset-0 object-cover rounded-md sm:rounded-xl"
                 src={PHOTOS[0]}
-                fill
+              fill
                 alt="listing stay detail page"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw"
                 priority
-              />
-              <div className="absolute inset-0 bg-neutral-900 bg-opacity-20 opacity-0 hover:opacity-100 transition-opacity"></div>
-            </div>
-            {PHOTOS.filter((_, i) => i >= 1 && i < 5).map((item, index) => (
-              <div
-                key={index}
-                className={`relative rounded-md sm:rounded-xl overflow-hidden ${
-                  index >= 3 ? "hidden sm:block" : ""
-                }`}
-              >
-                <div className="aspect-w-4 aspect-h-3 sm:aspect-w-6 sm:aspect-h-5">
-                  <Image
-                    fill
-                    className="object-cover rounded-md sm:rounded-xl "
-                    src={item || ""}
-                    alt=""
-                    sizes="400px"
-                  />
-                </div>
-
-                {/* OVERLAY */}
-                <div
-                  className="absolute inset-0 bg-neutral-900 bg-opacity-20 opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
-                  onClick={handleOpenModalImageGallery}
+            />
+            <div className="absolute inset-0 bg-neutral-900 bg-opacity-20 opacity-0 hover:opacity-100 transition-opacity"></div>
+          </div>
+          {PHOTOS.filter((_, i) => i >= 1 && i < 5).map((item, index) => (
+            <div
+              key={index}
+              className={`relative rounded-md sm:rounded-xl overflow-hidden ${
+                index >= 3 ? "hidden sm:block" : ""
+              }`}
+            >
+              <div className="aspect-w-4 aspect-h-3 sm:aspect-w-6 sm:aspect-h-5">
+                <Image
+                  fill
+                  className="object-cover rounded-md sm:rounded-xl "
+                  src={item || ""}
+                  alt=""
+                  sizes="400px"
                 />
               </div>
-            ))}
 
-            <button
-              className="absolute hidden md:flex md:items-center md:justify-center left-3 bottom-3 px-4 py-2 rounded-xl bg-neutral-100 text-neutral-500 hover:bg-neutral-200 z-10"
-              onClick={handleOpenModalImageGallery}
-            >
-              <Squares2X2Icon className="w-5 h-5" />
-              <span className="ml-2 text-neutral-800 text-sm font-medium">
-                Show all photos
-              </span>
-            </button>
-          </div>
-        </header>
+              {/* OVERLAY */}
+              <div
+                className="absolute inset-0 bg-neutral-900 bg-opacity-20 opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                onClick={handleOpenModalImageGallery}
+              />
+            </div>
+          ))}
+
+          <button
+            className="absolute hidden md:flex md:items-center md:justify-center left-3 bottom-3 px-4 py-2 rounded-xl bg-neutral-100 text-neutral-500 hover:bg-neutral-200 z-10"
+            onClick={handleOpenModalImageGallery}
+          >
+            <Squares2X2Icon className="w-5 h-5" />
+            <span className="ml-2 text-neutral-800 text-sm font-medium">
+              Show all photos
+            </span>
+          </button>
+        </div>
+      </header>
       </>
 
       {/* MAIN */}

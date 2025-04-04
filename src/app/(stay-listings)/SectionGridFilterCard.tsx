@@ -35,7 +35,7 @@ const SectionGridFilterCard: FC<SectionGridFilterCardProps> = ({
 
   // Initial fetch on mount and when filters change
   useEffect(() => {
-    const params: any = { page: 1, page_size: 12 };
+    const params: any = { page: 1, page_size: 8 };
     
     // Only add city filter if it's not "All"
     if (shouldFetch.city && shouldFetch.city !== "All") {
@@ -66,7 +66,7 @@ const SectionGridFilterCard: FC<SectionGridFilterCardProps> = ({
 
   // Handle page change
   const handlePageChange = useCallback((page: number) => {
-    const params: any = { page, page_size: 12 };
+    const params: any = { page, page_size: 8 };
     
     if (activeCity !== "All") {
       params.city = activeCity;
@@ -137,11 +137,48 @@ const SectionGridFilterCard: FC<SectionGridFilterCardProps> = ({
           {/* PAGINATION */}
           {pagination.totalPages > 1 && (
             <div className="flex mt-16 justify-center items-center">
-              <Pagination 
-                currentPage={pagination.currentPage}
-                totalPage={pagination.totalPages}
-                onChange={handlePageChange}
-              />
+              <nav className="inline-flex space-x-1">
+                {/* Previous button */}
+                <button
+                  onClick={() => handlePageChange(pagination.currentPage - 1)}
+                  disabled={pagination.currentPage <= 1}
+                  className={`flex h-9 w-9 items-center justify-center rounded-full ${
+                    pagination.currentPage <= 1
+                      ? "cursor-not-allowed text-neutral-400"
+                      : "text-neutral-700 hover:bg-neutral-100"
+                  }`}
+                >
+                  <i className="las la-angle-left"></i>
+                </button>
+                
+                {/* Page numbers */}
+                {Array.from({ length: pagination.totalPages }, (_, i) => (
+                  <button
+                    key={i+1}
+                    onClick={() => handlePageChange(i+1)}
+                    className={`flex h-9 w-9 items-center justify-center rounded-full ${
+                      i+1 === pagination.currentPage
+                        ? "bg-primary-500 text-white"
+                        : "text-neutral-700 hover:bg-neutral-100"
+                    }`}
+                  >
+                    {i+1}
+                  </button>
+                ))}
+                
+                {/* Next button */}
+                <button
+                  onClick={() => handlePageChange(pagination.currentPage + 1)}
+                  disabled={pagination.currentPage >= pagination.totalPages}
+                  className={`flex h-9 w-9 items-center justify-center rounded-full ${
+                    pagination.currentPage >= pagination.totalPages
+                      ? "cursor-not-allowed text-neutral-400"
+                      : "text-neutral-700 hover:bg-neutral-100"
+                  }`}
+                >
+                  <i className="las la-angle-right"></i>
+                </button>
+              </nav>
             </div>
           )}
         </>
