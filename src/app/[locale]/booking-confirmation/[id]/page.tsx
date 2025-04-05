@@ -32,8 +32,19 @@ export default function BookingConfirmationPage() {
       
       try {
         setIsLoading(true);
+        
+        // Check if we have a valid reservation ID
+        if (!reservationId || reservationId === 'undefined') {
+          console.error('Invalid reservation ID in booking confirmation page:', reservationId);
+          throw new Error('Invalid reservation ID');
+        }
+        
+        // Explicitly make a GET request to /reservation/{id}/ endpoint
+        console.log(`Making GET request to /reservation/${reservationId}/ after payment`);
+        
         // Fetch reservation details with authentication
         const reservationData = await reservationService.getReservation(reservationId);
+        console.log("Reservation data successfully retrieved:", reservationData);
         setReservation(reservationData);
         
         // Fetch payment if we have payment ID
