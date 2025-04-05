@@ -348,14 +348,16 @@ export default function HotelPage({ params }: HotelPageProps) {
       console.log("Created pending reservation:", reservation.id);
       
       // Show success toast
-      toast.success("Reservation created successfully! Proceeding to checkout...");
+      // toast.success("Reservation created successfully! Proceeding to checkout...");
 
-      // Construct URL with reservation ID and other parameters
-      const url = `/${params.locale}/checkout/${hotel.id}?reservationId=${reservation.id}&roomId=${selectedRoom.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guestCount}&nights=${stayDuration}&total=${priceBreakdown.total.toFixed(2)}`;
-      
-      // Redirect to the payment page
-      router.push(url as any);
+      alert("Reservation created successfully! Proceeding to checkout...");
+      // // Construct URL with reservation ID and other parameters
+      // const url = `/${params.locale}/checkout/${hotel.id}?reservationId=${reservation.id}&roomId=${selectedRoom.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guestCount}&nights=${stayDuration}&total=${priceBreakdown.total.toFixed(2)}`;
+
+      // // Redirect to the payment page
+      // router.push(url as any);
     } catch (error) {
+      alert("Failed to create reservation. Please try again.");
       console.error("Booking error:", error);
       toast.error("Failed to create reservation. Please try again.");
     } finally {
