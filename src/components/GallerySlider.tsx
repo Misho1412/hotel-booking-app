@@ -10,7 +10,7 @@ import Link from "next/link";
 import { Route } from "@/routers/types";
 
 // Default placeholder image - should match the one in adapters.ts
-const DEFAULT_IMAGE = "/images/placeholder-large.png";
+const DEFAULT_IMAGE = "/images/hotels/plaza-inn-ohud/main.jpg";
 
 export interface GallerySliderProps {
   className?: string;

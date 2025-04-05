@@ -39,7 +39,7 @@ class BookingService {
         throw new Error('Authentication required to create a booking');
       }
       
-      const response = await apiClient.post('/api/bookings/', bookingData, { headers });
+      const response = await apiClient.post('/bookings/', bookingData, { headers });
       console.log(`Booking created successfully, status: ${response.status}`);
       
       return response.data;
@@ -92,7 +92,7 @@ class BookingService {
         throw new Error('Authentication required to view booking details');
       }
       
-      const response = await apiClient.get(`/api/bookings/${bookingId}/`, { headers });
+      const response = await apiClient.get(`/bookings/${bookingId}/`, { headers });
       console.log(`Booking details retrieved successfully, status: ${response.status}`);
       
       return response.data;
@@ -147,7 +147,7 @@ class BookingService {
         throw new Error('Authentication required to view your bookings');
       }
       
-      const response = await apiClient.get('/api/bookings/user/', { headers });
+      const response = await apiClient.get('/bookings/user/', { headers });
       console.log(`User bookings retrieved successfully, count: ${response.data.length || 0}`);
       
       return response.data;
@@ -193,7 +193,7 @@ class BookingService {
         throw new Error('Authentication required to cancel a booking');
       }
       
-      const response = await apiClient.post(`/api/bookings/${bookingId}/cancel/`, {}, { headers });
+      const response = await apiClient.post(`/bookings/${bookingId}/cancel/`, {}, { headers });
       console.log(`Booking cancelled successfully, status: ${response.status}`);
       
       return response.data;

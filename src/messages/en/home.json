@@ -1,14 +1,14 @@
 {
   "hero": {
-    "title": "Find your next dream accommodation",
-    "subTitle": "Book the perfect property for your dream vacation",
-    "subtitle": "Book the perfect property for your dream vacation",
+    "title": "Find Your Perfect Stay",
+    "subTitle": "Book your perfect accommodation for a spiritual journey to Makkah or Madinah.",
+    "subtitle": "Book your perfect accommodation for a spiritual journey to Makkah or Madinah.",
     "placeholder": "Search properties...",
     "suggestedSearches": "Suggested searches:",
     "search": "Search"
   },
   "featured": {
-    "title": "Featured Property Types",
+    "title": "Featured Destinations",
     "subtitle": "Discover the best places to stay for your next trip",
     "viewAll": "View All"
   },
@@ -45,13 +45,25 @@
     }
   },
   "featuredPlaces": {
-    "title": "Featured places to stay",
-    "subtitle": "Popular places to stay that Chisfis recommends for you",
-    "cities": {
-      "newYork": "New York",
-      "tokyo": "Tokyo",
-      "paris": "Paris",
-      "london": "London"
+    "title": "Featured Places to Stay",
+    "subtitle": "Popular places to stay that we recommend for you",
+    "destinations": {
+      "makkah": {
+        "title": "Spiritual Stay in Makkah",
+        "name": "Makkah",
+        "hotelsNearHaram": "Hotels Near Haram",
+        "avgRating": "Avg. Rating",
+        "secureSpot": "Secure your spot early for Hajj & Umrah",
+        "explore": "Explore"
+      },
+      "madina": {
+        "title": "Peaceful Stay in Madina",
+        "name": "Madina",
+        "hotelsAvailable": "Hotels Available",
+        "avgRating": "Avg. Rating",
+        "visitProphetsMosque": "Visit Prophet's Mosque",
+        "discover": "Discover"
+      }
     }
   },
   "suggestions": {

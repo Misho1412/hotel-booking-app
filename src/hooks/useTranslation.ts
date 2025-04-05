@@ -13,11 +13,15 @@ import arHome from '@/messages/ar/home.json';
 import enHome from '@/messages/en/home.json';
 import arFooter from '@/messages/ar/footer.json';
 import enFooter from '@/messages/en/footer.json';
+import arStayListing from '@/messages/ar/stay-listing.json';
+import enStayListing from '@/messages/en/stay-listing.json';
+import arAbout from '@/messages/ar/about.json';
+import enAbout from '@/messages/en/about.json';
 
 // Set to true to see translation debugging info in the console
 const DEBUG_TRANSLATIONS = false;
 
-type Namespace = 'common' | 'search' | 'tabs' | 'months' | 'home' | 'header' | 'footer' | string;
+type Namespace = 'common' | 'search' | 'tabs' | 'months' | 'home' | 'header' | 'footer' | 'stay-listing' | 'about' | string;
 
 // Organize messages by namespace
 const messages = {
@@ -111,6 +115,50 @@ const messages = {
       copyright: "© 2023 إدارة الحجز عبر الإنترنت. جميع الحقوق محفوظة.",
       gettingStarted: "البدء",
       resources: "الموارد"
+    },
+    'stay-listing': arStayListing || {
+      pageTitle: "الإقامات في المملكة العربية السعودية",
+      pageSubtitle: "233 إقامة · 12 - 18 أغسطس · 2 ضيوف",
+      cityTabs: {
+        all: "الكل",
+        makkah: "مكة المكرمة",
+        madinah: "المدينة المنورة"
+      },
+      stayCard: {
+        beds: "سرير",
+        night: "ليلة",
+        ads: "إعلان"
+      },
+      loading: "جاري تحميل الفنادق...",
+      error: {
+        title: "خطأ في تحميل الفنادق: ",
+        message: "لم نتمكن من تحميل الفنادق من الخادم. يرجى المحاولة مرة أخرى.",
+        retry: "إعادة المحاولة"
+      },
+      empty: {
+        title: "لم يتم العثور على فنادق",
+        message: "لم نتمكن من العثور على أي فنادق تطابق معاييرك.",
+        viewAll: "عرض جميع الفنادق"
+      }
+    },
+    about: arAbout || {
+      pageTitle: "من نحن",
+      hero: {
+        greeting: "👋 من نحن",
+        subHeading: "نحن محايدون ومستقلون، وكل يوم نقوم بإنشاء برامج ومحتوى مميز ذو مستوى عالمي والتي تبلغ وتعلم وتسلي ملايين الأشخاص حول العالم."
+      },
+      founder: {
+        title: "⛱ المؤسسون",
+        desc: "نحن محايدون ومستقلون، وكل يوم نقوم بإنشاء برامج ومحتوى مميز ذو مستوى عالمي"
+      },
+      statistics: {
+        title: "🚀 حقائق سريعة",
+        desc: "نحن محايدون ومستقلون، وكل يوم نقوم بإنشاء برامج ومحتوى مميز ذو مستوى عالمي"
+      },
+      clientSay: {
+        title: "ماذا يقول عملاؤنا",
+        desc: "إليكم ما يقوله بعض عملائنا المميزين"
+      }
     }
   },
   en: {
@@ -203,6 +251,50 @@ const messages = {
       copyright: "© 2023 Online Booking Management. All rights reserved.",
       gettingStarted: "Getting Started",
       resources: "Resources"
+    },
+    'stay-listing': enStayListing || {
+      pageTitle: "Stays in Saudi Arabia",
+      pageSubtitle: "233 stays · Aug 12 - 18 · 2 Guests",
+      cityTabs: {
+        all: "All",
+        makkah: "Makkah",
+        madinah: "Madinah"
+      },
+      stayCard: {
+        beds: "beds",
+        night: "/night",
+        ads: "ADS"
+      },
+      loading: "Loading hotels...",
+      error: {
+        title: "Error loading hotels: ",
+        message: "We couldn't load hotels from the backend. Please try again.",
+        retry: "Retry"
+      },
+      empty: {
+        title: "No hotels found",
+        message: "We couldn't find any hotels matching your criteria.",
+        viewAll: "View All Hotels"
+      }
+    },
+    about: enAbout || {
+      pageTitle: "About Us",
+      hero: {
+        greeting: "👋 About Us",
+        subHeading: "We're impartial and independent, and every day we create distinctive, world-class programmes and content which inform, educate and entertain millions of people in the around the world."
+      },
+      founder: {
+        title: "⛱ Founder",
+        desc: "We're impartial and independent, and every day we create distinctive, world-class programmes and content"
+      },
+      statistics: {
+        title: "🚀 Fast Facts",
+        desc: "We're impartial and independent, and every day we create distinctive, world-class programmes and content"
+      },
+      clientSay: {
+        title: "What our clients say",
+        desc: "Here are what some of our amazing customers are saying"
+      }
     }
   }
 };

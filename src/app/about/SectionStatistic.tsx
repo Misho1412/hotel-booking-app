@@ -1,5 +1,7 @@
 import React, { FC } from "react";
 import Heading from "@/shared/Heading";
+import useTranslation from "@/hooks/useTranslation";
+import { usePathname } from "next/navigation";
 
 export interface Statistic {
   id: string;
@@ -32,16 +34,34 @@ export interface SectionStatisticProps {
 }
 
 const SectionStatistic: FC<SectionStatisticProps> = ({ className = "" }) => {
+  const t = useTranslation('about');
+  const pathname = usePathname();
+  const isArabic = pathname?.startsWith('/ar');
+  
+  // Get translated stats data
+  const getTranslatedStats = () => {
+    if (!isArabic) return FOUNDER_DEMO;
+    
+    return t('statistics.stats')
+      ? FOUNDER_DEMO.map((stat, index) => ({
+          ...stat,
+          heading: t(`statistics.stats.${index}.heading`) || stat.heading,
+          subHeading: t(`statistics.stats.${index}.subHeading`) || stat.subHeading,
+        }))
+      : FOUNDER_DEMO;
+  };
+  
+  const translatedStats = getTranslatedStats();
+
   return (
     <div className={`nc-SectionStatistic relative ${className}`}>
       <Heading
-        desc=" We’re impartial and independent, and every day we create distinctive,
-          world-class programmes and content"
+        desc={t('statistics.desc')}
       >
-        🚀 Fast Facts
+        {t('statistics.title')}
       </Heading>
       <div className="grid md:grid-cols-2 gap-6 lg:grid-cols-3 xl:gap-8">
-        {FOUNDER_DEMO.map((item) => (
+        {translatedStats.map((item) => (
           <div
             key={item.id}
             className="p-6 bg-neutral-50 dark:bg-neutral-800 rounded-2xl dark:border-neutral-800"

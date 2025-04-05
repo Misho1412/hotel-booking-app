@@ -2,11 +2,11 @@ import React from "react";
 import SectionHero from "@/components/SectionHero";
 import SectionSliderNewCategories from "@/components/SectionSliderNewCategories";
 import BackgroundSection from "@/components/BackgroundSection";
-import SectionGridFeaturePlaces from "@/components/SectionGridFeaturePlaces";
 import SectionHowItWork from "@/components/SectionHowItWork";
 import SectionSubscribe2 from "@/components/SectionSubscribe2";
 import BgGlassmorphism from "@/components/BgGlassmorphism";
 import { FEATURED_CITIES } from "@/data/cities";
+import { DestinationPins } from "@/components/ui/DestinationPins";
 
 function Page() {
   return (
@@ -29,7 +29,7 @@ function Page() {
         {/* SECTION FEATURED HOTELS */}
         <div className="relative py-16">
           <BackgroundSection />
-          <SectionGridFeaturePlaces />
+          <DestinationPins />
         </div>
 
         {/* SECTION HOW IT WORK */}

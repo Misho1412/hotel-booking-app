@@ -3,6 +3,7 @@ import { IHotel, IHotelListResponse, IHotelSearchParams } from '@/lib/api/schema
 import hotelService from '@/lib/api/services/hotelService';
 import { StayDataType } from '@/data/types';
 import { hotelToStayData, hotelsToStayData } from '@/lib/api/adapters';
+import { usePathname } from 'next/navigation';
 
 interface UseHotelsState {
   isLoading: boolean;
@@ -28,6 +29,10 @@ interface UseHotelsOptions {
  */
 export default function useHotels(options: UseHotelsOptions = {}) {
   const { initialParams = {}, autoFetch = true } = options;
+  
+  // Get current locale for translations
+  const pathname = usePathname();
+  const isArabic = pathname?.startsWith('/ar');
   
   const [params, setParams] = useState<IHotelSearchParams>(initialParams);
   const [state, setState] = useState<UseHotelsState>({
@@ -58,7 +63,8 @@ export default function useHotels(options: UseHotelsOptions = {}) {
       const currentPage = searchParams.page || 1;
       
       // Convert to StayDataType for UI components
-      const stayData = hotelsToStayData(response.results);
+      // Pass isArabic flag for translations
+      const stayData = hotelsToStayData(response.results, isArabic);
       
       setState({
         isLoading: false,
@@ -83,7 +89,7 @@ export default function useHotels(options: UseHotelsOptions = {}) {
       }));
       throw error;
     }
-  }, [params]);
+  }, [params, isArabic]);
   
   // Function to fetch a single hotel by ID
   const fetchHotelById = useCallback(async (id: string) => {
@@ -91,7 +97,8 @@ export default function useHotels(options: UseHotelsOptions = {}) {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
       const hotel = await hotelService.getHotelDetails(id);
-      const stayDataItem = hotelToStayData(hotel);
+      // Pass isArabic flag for translations
+      const stayDataItem = hotelToStayData(hotel, isArabic);
       
       setState(prev => ({
         ...prev,
@@ -109,7 +116,7 @@ export default function useHotels(options: UseHotelsOptions = {}) {
       }));
       throw error;
     }
-  }, []);
+  }, [isArabic]);
   
   // Function to fetch a single hotel by slug
   const fetchHotelBySlug = useCallback(async (slug: string) => {
@@ -117,7 +124,8 @@ export default function useHotels(options: UseHotelsOptions = {}) {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
       const hotel = await hotelService.getHotelBySlug(slug);
-      const stayDataItem = hotelToStayData(hotel);
+      // Pass isArabic flag for translations
+      const stayDataItem = hotelToStayData(hotel, isArabic);
       
       setState(prev => ({
         ...prev,
@@ -135,7 +143,7 @@ export default function useHotels(options: UseHotelsOptions = {}) {
       }));
       throw error;
     }
-  }, []);
+  }, [isArabic]);
   
   // Function to fetch featured hotels
   const fetchFeaturedHotels = useCallback(async (limit?: number) => {
@@ -143,7 +151,8 @@ export default function useHotels(options: UseHotelsOptions = {}) {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
       const hotels = await hotelService.getFeaturedHotels(limit);
-      const stayData = hotelsToStayData(hotels);
+      // Pass isArabic flag for translations
+      const stayData = hotelsToStayData(hotels, isArabic);
       
       setState(prev => ({
         ...prev,
@@ -166,7 +175,7 @@ export default function useHotels(options: UseHotelsOptions = {}) {
       }));
       throw error;
     }
-  }, []);
+  }, [isArabic]);
   
   // Function to fetch hotels by city
   const fetchHotelsByCity = useCallback(async (city: string, limit?: number) => {
@@ -174,7 +183,8 @@ export default function useHotels(options: UseHotelsOptions = {}) {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
       const hotels = await hotelService.getHotelsByCity(city, limit);
-      const stayData = hotelsToStayData(hotels);
+      // Pass isArabic flag for translations
+      const stayData = hotelsToStayData(hotels, isArabic);
       
       setState(prev => ({
         ...prev,
@@ -197,7 +207,7 @@ export default function useHotels(options: UseHotelsOptions = {}) {
       }));
       throw error;
     }
-  }, []);
+  }, [isArabic]);
   
   // Function to go to next page
   const nextPage = useCallback(() => {
@@ -236,6 +246,25 @@ export default function useHotels(options: UseHotelsOptions = {}) {
     return fetchHotels(updatedParams);
   }, [params, fetchHotels]);
   
+  // Function to fetch amenities for a specific hotel
+  const fetchHotelAmenities = useCallback(async (hotelId: string): Promise<any[]> => {
+    try {
+      setState(prev => ({ ...prev, isLoading: true, error: null }));
+      console.log(`Fetching amenities for hotel ID: ${hotelId}`);
+      const amenities = await hotelService.getHotelAmenities(hotelId);
+      console.log(`Fetched ${amenities.length} amenities for hotel ${hotelId}`);
+      return amenities;
+    } catch (error) {
+      console.error('Error fetching hotel amenities:', error);
+      setState(prev => ({ 
+        ...prev, 
+        isLoading: false, 
+        error: error instanceof Error ? error : new Error('Failed to fetch hotel amenities') 
+      }));
+      return [];
+    }
+  }, []);
+  
   // Initial fetch effect
   useEffect(() => {
     if (autoFetch) {
@@ -255,6 +284,7 @@ export default function useHotels(options: UseHotelsOptions = {}) {
     prevPage,
     goToPage,
     updateParams,
-    setParams
+    setParams,
+    fetchHotelAmenities
   };
 } 

@@ -26,7 +26,7 @@ export interface PageAboutProps {
 
 const PageAbout: FC<PageAboutProps> = ({ params }) => {
   const [isMounted, setIsMounted] = useState(false);
-  const t = useTranslation('header');
+  const t = useTranslation('about');
   
   useEffect(() => {
     setIsMounted(true);
@@ -50,9 +50,9 @@ const PageAbout: FC<PageAboutProps> = ({ params }) => {
         <div data-aos="fade-up" data-aos-duration="1000">
           <SectionHero
             rightImg={rightImg}
-            heading={`👋 ${t('about')}`}
+            heading={t('hero.greeting')}
             btnText=""
-            subHeading="We're impartial and independent, and every day we create distinctive, world-class programmes and content which inform, educate and entertain millions of people in the around the world."
+            subHeading={t('hero.subHeading')}
           />
         </div>
 

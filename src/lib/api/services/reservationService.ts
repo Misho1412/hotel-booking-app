@@ -112,7 +112,7 @@ const reservationService = {
         throw new Error('Authentication required to view your reservations');
       }
       
-      const response = await apiClient.get('/api/reservations/user/', {
+      const response = await apiClient.get('/reservations/user/', {
         params: { page, page_size: pageSize },
         headers
       });
@@ -154,7 +154,7 @@ const reservationService = {
         throw new Error('Authentication required to view reservation details');
       }
       
-      const response = await apiClient.get(`/api/reservations/${reservationId}/`, { headers });
+      const response = await apiClient.get(`/reservations/${reservationId}/`, { headers });
       
       console.log(`Reservation details retrieved, status: ${response.status}`);
       
@@ -269,7 +269,7 @@ const reservationService = {
       delete (mappedReservationData as any).checkOutDate;
       delete (mappedReservationData as any).numberOfGuests;
 
-      const response = await apiClient.put<any>(`/api/reservations/${reservationId}/`, mappedReservationData, { headers });
+      const response = await apiClient.put<any>(`/reservations/${reservationId}/`, mappedReservationData, { headers });
       
       console.log('Update reservation response:', response.status);
       
@@ -304,7 +304,7 @@ const reservationService = {
         headers['Authorization'] = `Token ${token}`;
       }
       
-      const response = await apiClient.patch<any>(`/api/reservations/${reservationId}/`, validatedReservationData, { headers });
+      const response = await apiClient.patch<any>(`/reservations/${reservationId}/`, validatedReservationData, { headers });
       
       console.log('Patch reservation response:', response.status);
       
@@ -334,7 +334,7 @@ const reservationService = {
         headers['Authorization'] = `Token ${token}`;
       }
       
-      await apiClient.delete(`/api/reservations/${reservationId}/`, { headers });
+      await apiClient.delete(`/reservations/${reservationId}/`, { headers });
     } catch (error: any) {
       console.error('Delete reservation error:', error);
       throw new Error(`Failed to delete reservation: ${error.message}`);
@@ -350,7 +350,7 @@ const reservationService = {
    */
   getHotelReservations: async (hotelId: string, page?: number, pageSize?: number): Promise<PaginatedReservationList> => {
     try {
-      const response = await apiClient.get<any>(`/api/reservations/hotel/${hotelId}/`, {
+      const response = await apiClient.get<any>(`/reservations/hotel/${hotelId}/`, {
         params: { page, page_size: pageSize }
       });
       
@@ -376,7 +376,7 @@ const reservationService = {
    */
   getRoomReservations: async (roomId: string, page?: number, pageSize?: number): Promise<PaginatedReservationList> => {
     try {
-      const response = await apiClient.get<any>(`/api/reservations/room/${roomId}/`, {
+      const response = await apiClient.get<any>(`/reservations/room/${roomId}/`, {
         params: { page, page_size: pageSize }
       });
       
@@ -401,7 +401,7 @@ const reservationService = {
    */
   cancelReservation: async (reservationId: string, reason?: string): Promise<Reservation> => {
     try {
-      const response = await apiClient.post<any>(`/api/reservations/${reservationId}/cancel/`, 
+      const response = await apiClient.post<any>(`/reservations/${reservationId}/cancel/`, 
         reason ? { reason } : undefined
       );
       
