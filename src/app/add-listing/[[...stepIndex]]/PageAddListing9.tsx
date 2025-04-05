@@ -9,9 +9,12 @@ import DatePicker from "react-datepicker";
 export interface PageAddListing9Props {}
 
 const PageAddListing9: FC<PageAddListing9Props> = () => {
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
   const [dates, setDates] = useState<number[]>([
-    new Date("2023/02/06").getTime(),
-    new Date("2023/02/09").getTime(),
+    today.getTime(),
+    tomorrow.getTime(),
     new Date("2023/02/15").getTime(),
   ]);
 

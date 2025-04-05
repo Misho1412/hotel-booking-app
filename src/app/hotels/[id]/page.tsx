@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import BgGlassmorphism from "@/components/BgGlassmorphism";
 import useHotels from "@/hooks/useHotels";
 import { IHotel } from "@/lib/api/schemas/hotel";
@@ -25,7 +25,9 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import DateRangePickerWrapper from "./DateRangePickerWrapper";
 import GuestPickerWrapper from "./GuestPickerWrapper";
-import reservationService from "@/lib/api/services/reservationService";
+import reservationService, { ReservationBackendRequest } from "@/lib/api/services/reservationService";
+import { toast } from "react-hot-toast";
+import Link from "next/link";
 
 export interface HotelPageProps {
   params: {
@@ -56,11 +58,18 @@ interface Room {
 export default function HotelPage({ params }: HotelPageProps) {
   const { id } = params;
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [isGuestPickerOpen, setIsGuestPickerOpen] = useState(false);
   const [isBookingLoading, setIsBookingLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [stayDuration, setStayDuration] = useState(3); // Default to 3 nights
   const [guestCount, setGuestCount] = useState(4); // Default to 4 guests
-  const [checkInDate, setCheckInDate] = useState(new Date('2023-02-06'));
-  const [checkOutDate, setCheckOutDate] = useState(new Date('2023-02-23'));
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+  const [checkInDate, setCheckInDate] = useState(today);
+  const [checkOutDate, setCheckOutDate] = useState(tomorrow);
   const [priceBreakdown, setPriceBreakdown] = useState({
     basePrice: 0,
     subtotal: 0,
@@ -68,28 +77,43 @@ export default function HotelPage({ params }: HotelPageProps) {
     total: 0
   });
   
-  // Add new state for modal controls
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [isGuestPickerOpen, setIsGuestPickerOpen] = useState(false);
-  
-  const { isLoading, error, stayData, hotels, fetchHotelById } = useHotels({
+  const { isLoading: hotelsLoading, error, stayData, hotels, fetchHotelById } = useHotels({
     autoFetch: false,
   });
 
   const [rooms, setRooms] = useState<Room[]>([]);
   const [isLoadingRooms, setIsLoadingRooms] = useState(false);
   const [roomsError, setRoomsError] = useState<Error | null>(null);
+  const authCheckedRef = useRef(false);
+
+  // Check authentication status once on component mount
+  useEffect(() => {
+    // Only check auth once to prevent infinite loading
+    if (!authCheckedRef.current) {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+      setIsLoggedIn(!!token);
+      authCheckedRef.current = true;
+    }
+  }, []);
 
   // Fetch hotel data when component mounts
   useEffect(() => {
-    if (id) {
-      fetchHotelById(id).catch(error => {
-        console.error("Failed to fetch hotel details:", error);
-      });
-    }
+    const fetchHotelData = async () => {
+      if (id) {
+        try {
+          await fetchHotelById(id);
+        } catch (error) {
+          console.error("Failed to fetch hotel details:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchHotelData();
   }, [id, fetchHotelById]);
 
-  // Recalculate price breakdown when stay duration or data changes
+  // Calculate price breakdown when stay data changes
   useEffect(() => {
     if (!stayData || stayData.length === 0) return;
     
@@ -134,7 +158,7 @@ export default function HotelPage({ params }: HotelPageProps) {
         
         // Get API base URL from env or use default
         const baseURL = process.env.NEXT_PUBLIC_AMR_API_URL || 'https://amrbooking.onrender.com/api';
-        const roomsURL = `${baseURL}/hotels/${id}/rooms/`;
+        const roomsURL = `${baseURL}/hotels-public/${id}/rooms/`;
         
         console.log('Fetching rooms from:', roomsURL);
         
@@ -159,8 +183,11 @@ export default function HotelPage({ params }: HotelPageProps) {
       }
     };
     
-    fetchRooms();
-  }, [id, hotels]);
+    // Only fetch rooms if hotels have been loaded
+    if (!hotelsLoading && hotels && hotels.length > 0) {
+      fetchRooms();
+    }
+  }, [id, hotels, hotelsLoading]);
 
   if (error) {
     return (
@@ -172,7 +199,7 @@ export default function HotelPage({ params }: HotelPageProps) {
     );
   }
 
-  if (isLoading) {
+  if (isLoading || hotelsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <Spinner size="lg" />
@@ -202,30 +229,48 @@ export default function HotelPage({ params }: HotelPageProps) {
   };
   
   const handleBookNow = async () => {
+    // Check if user is logged in first
+    const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+
+    if (!token) {
+      toast.error("Please sign in to make a reservation");
+      router.push(`/${params.locale}/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+
     try {
       setIsBookingLoading(true);
       // Format dates for URL parameters
       const checkIn = checkInDate.toISOString().split('T')[0];
       const checkOut = checkOutDate.toISOString().split('T')[0];
       
-      // Step 1: Create a pending reservation using the reservationService
-      const reservationData = {
-        hotelId: hotel.id.toString(),
-        roomId: "", // Using empty string for now, will be updated in checkout
-        checkInDate: checkIn,
-        checkOutDate: checkOut,
-        numberOfGuests: guestCount,
-        guestDetails: {
-          fullName: "", // These will be collected on the checkout page
-          email: "",
-          phoneNumber: ""
-        }
+      // Format dates in the expected format (DD/MM/YYYY)
+      const formatDateForBE = (dateStr: string) => {
+        const [year, month, day] = dateStr.split('-');
+        return `${day}/${month}/${year}`;
+      };
+
+      // Step 1: Create a pending reservation using the reservationService with the backend format
+      const reservationData: ReservationBackendRequest = {
+        room_id: "1", // Empty for now, will be selected in checkout
+        childs: "0", // Default to 0 children
+        adults: guestCount.toString(),
+        price_per_night: priceBreakdown.basePrice.toString(),
+        payment_method: "credit_card", // Default payment method
+        currency: "USD",
+        special_requests: "2",
+        check_in_date: formatDateForBE(checkIn),
+        check_out_date: formatDateForBE(checkOut),
+        notes: "test"
       };
       
       // Create reservation with pending payment status
       const reservation = await reservationService.createReservation(reservationData);
       console.log("Created pending reservation:", reservation.id);
       
+      // Show success toast
+      alert("Reservation created successfully! Proceeding to checkout...");
+
       // Construct URL with reservation ID and other parameters
       const url = `/${params.locale}/checkout/${hotel.id}?reservationId=${reservation.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guestCount}&nights=${stayDuration}&total=${priceBreakdown.total.toFixed(2)}`;
       
@@ -233,7 +278,7 @@ export default function HotelPage({ params }: HotelPageProps) {
       router.push(url as any);
     } catch (error) {
       console.error("Booking error:", error);
-      alert("There was an error processing your booking request. Please try again later.");
+      alert("Selected dates are not available. Please try again.");
     } finally {
       setIsBookingLoading(false);
     }
@@ -468,6 +513,15 @@ export default function HotelPage({ params }: HotelPageProps) {
                                 <ButtonPrimary 
                                   className="px-4 py-2 text-sm"
                                   onClick={async () => {
+                                    // Check for login first
+                                    const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+
+                                    if (!token) {
+                                      toast.error("Please sign in to book a room");
+                                      router.push(`/${params.locale}/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+                                      return;
+                                    }
+
                                     try {
                                       // Format dates for URL parameters
                                       const checkIn = checkInDate.toISOString().split('T')[0];
@@ -475,33 +529,42 @@ export default function HotelPage({ params }: HotelPageProps) {
                                       const roomPrice = room.defaultPrice || room.roomType?.defaultPrice || priceBreakdown.basePrice;
                                       const total = (roomPrice * stayDuration) * 1.1; // Adding 10% service charge
 
-                                      // Create a pending reservation with the specific room
-                                      const reservationData = {
-                                        hotelId: hotel.id.toString(),
-                                        roomId: (room.id || room.roomType?.id || "").toString(),
-                                        checkInDate: checkIn,
-                                        checkOutDate: checkOut,
-                                        numberOfGuests: guestCount,
-                                        guestDetails: {
-                                          fullName: "", // These will be collected on the checkout page
-                                          email: "",
-                                          phoneNumber: ""
-                                        }
+                                      // Format dates in the expected format (DD/MM/YYYY)
+                                      const formatDateForBE = (dateStr: string) => {
+                                        const [year, month, day] = dateStr.split('-');
+                                        return `${day}/${month}/${year}`;
+                                      };
+
+                                      // Create a pending reservation with the specific room using the backend format
+                                      const reservationData: ReservationBackendRequest = {
+                                        room_id: (room.id || room.roomType?.id || "").toString(),
+                                        childs: "0", // Default to 0 children
+                                        adults: guestCount.toString(),
+                                        price_per_night: roomPrice.toString(),
+                                        payment_method: "credit_card", // Default payment method
+                                        currency: "USD",
+                                        special_requests: "",
+                                        check_in_date: formatDateForBE(checkIn),
+                                        check_out_date: formatDateForBE(checkOut),
+                                        notes: "test"
                                       };
                                       
                                       // Create reservation with pending payment status
                                       const reservation = await reservationService.createReservation(reservationData);
                                       console.log("Created pending reservation for room:", reservation.id);
                                       
+                                      // Show success toast
+                                      toast.success("Room reserved successfully! Proceeding to checkout...");
+
                                       // Redirect to checkout page with the reservation ID
                                       router.push(`/${params.locale}/checkout/${hotel.id}?reservationId=${reservation.id}&roomId=${room.id || room.roomType?.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guestCount}&nights=${stayDuration}&total=${total.toFixed(2)}` as any);
                                     } catch (error) {
                                       console.error("Error creating reservation:", error);
-                                      alert("There was an error booking this room. Please try again later.");
+                                      toast.error("There was an error booking this room. Please try again later.");
                                     }
                                   }}
                                 >
-                                  Book Now
+                                  {isLoggedIn ? "Book Now" : "Sign in to book"}
                                 </ButtonPrimary>
                               </div>
                             </div>
@@ -603,20 +666,33 @@ export default function HotelPage({ params }: HotelPageProps) {
 
               {/* SUBMIT */}
               <div className="mt-6">
-                <ButtonPrimary onClick={handleBookNow} className="w-full">
+                <ButtonPrimary
+                  onClick={handleBookNow}
+                  className="w-full"
+                  disabled={isBookingLoading}
+                >
                   {isBookingLoading ? (
                     <div className="flex items-center justify-center">
                       <Spinner size="sm" className="mr-2" />
                       <span>Processing...</span>
                     </div>
                   ) : (
-                    <span>Reserve</span>
+                      <span>{isLoggedIn ? "Reserve" : "Sign in to reserve"}</span>
                   )}
                 </ButtonPrimary>
                 <div className="mt-4 text-center">
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                    You won't be charged yet
-                  </span>
+                  {isLoggedIn ? (
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                      You won't be charged yet
+                    </span>
+                  ) : (
+                    <Link
+                      href={`/${params.locale}/login?redirect=${encodeURIComponent(window.location.pathname)}`}
+                      className="text-sm text-primary-600 hover:underline"
+                    >
+                      Sign in to make a reservation
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>

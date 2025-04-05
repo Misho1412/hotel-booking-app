@@ -184,7 +184,7 @@ class HotelService {
         headers['Authorization'] = `Token ${token}`;
       }
       
-      const response = await apiClient.get<IHotel>(`/hotels/${id}/`, { headers });
+      const response = await apiClient.get<IHotel>(`/hotels-public/${id}/`, { headers });
       console.log(`Hotel details API response status: ${response.status}`);
       
       return response.data;
@@ -195,7 +195,7 @@ class HotelService {
         // Try public endpoint
         try {
           console.log("Attempting to access public hotel details endpoint");
-          const fallbackResponse = await apiClient.get<IHotel>(`/hotels/public/${id}/`);
+          const fallbackResponse = await apiClient.get<IHotel>(`/hotels-public/${id}/`);
           return fallbackResponse.data;
         } catch (fallbackError) {
           console.error("Fallback hotel details request failed:", fallbackError);
@@ -438,11 +438,11 @@ class HotelService {
       
       // Construct the full URL for detailed logging
       const baseUrl = apiClient.defaults.baseURL;
-      const fullUrl = `${baseUrl}/hotels/?${queryParams.toString()}`;
+      const fullUrl = `${baseUrl}/hotels-public/?${queryParams.toString()}`;
       console.log(`[${requestId}] Making request to: ${fullUrl}`);
       
       const startTime = Date.now();
-      const response = await apiClient.get('/hotels/', {
+      const response = await apiClient.get('/hotels-public/', {
         params,
         headers,
         timeout: 10000, // 10 second timeout

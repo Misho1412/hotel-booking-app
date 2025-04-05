@@ -16,10 +16,13 @@ const StayDatesRangeInput: FC<StayDatesRangeInputProps> = ({
   className = "[ lg:nc-flex-2 ]",
   fieldClassName = "[ nc-hero-field-padding--small ]",
 }) => {
-  const [startDate, setStartDate] = useState<Date | null>(
-    new Date("2023/02/06")
-  );
-  const [endDate, setEndDate] = useState<Date | null>(new Date("2023/02/23"));
+  // Set default dates to today and tomorrow
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+
+  const [startDate, setStartDate] = useState<Date | null>(today);
+  const [endDate, setEndDate] = useState<Date | null>(tomorrow);
   //
 
   const onChangeDate = (dates: [Date | null, Date | null]) => {
@@ -92,6 +95,7 @@ const StayDatesRangeInput: FC<StayDatesRangeInputProps> = ({
                   monthsShown={2}
                   showPopperArrow={false}
                   inline
+                  minDate={new Date()}
                   renderCustomHeader={(p) => (
                     <DatePickerCustomHeaderTwoMonth {...p} />
                   )}

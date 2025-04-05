@@ -14,10 +14,11 @@ const FlightSearchForm = () => {
   //
   const [locationInputPickUp, setLocationInputPickUp] = useState("");
   const [locationInputDropOff, setLocationInputDropOff] = useState("");
-  const [startDate, setStartDate] = useState<Date | null>(
-    new Date("2023/02/06")
-  );
-  const [endDate, setEndDate] = useState<Date | null>(new Date("2023/02/23"));
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+  const [startDate, setStartDate] = useState<Date | null>(today);
+  const [endDate, setEndDate] = useState<Date | null>(tomorrow);
 
   const [dropOffLocationType, setDropOffLocationType] = useState<
     "Round-trip" | "One-way" | ""

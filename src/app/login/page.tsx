@@ -9,7 +9,7 @@ import ButtonPrimary from "@/shared/ButtonPrimary";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { getLocalizedUrl } from "@/utils/getLocalizedUrl";
 import { Route } from "next";
 import Alert from "@/shared/Alert";
@@ -39,7 +39,10 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
   const { login, isLoading } = useAuth();
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const locale = params?.locale as string;
+  const redirectTo = searchParams?.get("redirect") || "/";
+
   const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState({
     username: "anasos20",
@@ -159,9 +162,10 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
         console.log('Token set in API client headers with "Token" prefix');
       }
       
-      console.log("Login successful, redirecting...");
-      // Redirect to homepage or dashboard after successful login
-      router.push("/");
+      console.log("Login successful, redirecting to:", redirectTo);
+
+      // Use the redirect URL if provided, otherwise go to homepage
+      router.push(redirectTo as any);
     } catch (error: any) {
       console.error("Login error:", error);
       setSuccessMessage(null);
@@ -177,6 +181,13 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
           Login
         </h2>
         <div className="max-w-md mx-auto space-y-6">
+          {/* Show the redirect notice if a redirect parameter is present */}
+          {redirectTo && redirectTo !== "/" && (
+            <Alert className="mb-5">
+              You'll be redirected back to your previous page after login.
+            </Alert>
+          )}
+
           <div className="grid gap-3">
             {loginSocials.map((item, index) => (
               <a

@@ -21,10 +21,11 @@ const RentalCarDatesRangeInput: FC<RentalCarDatesRangeInputProps> = ({
   fieldClassName = "[ nc-hero-field-padding ]",
   hasButtonSubmit = true,
 }) => {
-  const [startDate, setStartDate] = useState<Date | null>(
-    new Date("2023/03/01")
-  );
-  const [endDate, setEndDate] = useState<Date | null>(new Date("2023/03/16"));
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+  const [startDate, setStartDate] = useState<Date | null>(today);
+  const [endDate, setEndDate] = useState<Date | null>(tomorrow);
 
   const onChangeDate = (dates: [Date | null, Date | null]) => {
     const [start, end] = dates;

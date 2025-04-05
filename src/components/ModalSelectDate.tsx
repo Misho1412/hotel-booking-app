@@ -16,9 +16,9 @@ const ModalSelectDate: FC<ModalSelectDateProps> = ({ renderChildren }) => {
   const [showModal, setShowModal] = useState(false);
 
   const [startDate, setStartDate] = useState<Date | null>(
-    new Date("2023/02/06")
+    new Date()
   );
-  const [endDate, setEndDate] = useState<Date | null>(new Date("2023/02/23"));
+  const [endDate, setEndDate] = useState<Date | null>(new Date());
 
   const onChangeDate = (dates: [Date | null, Date | null]) => {
     const [start, end] = dates;

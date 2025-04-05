@@ -15,12 +15,13 @@ import ModalSelectDate from "@/components/ModalSelectDate";
 import converSelectedDateToString from "@/utils/converSelectedDateToString";
 import ModalSelectGuests from "@/components/ModalSelectGuests";
 import { GuestsObject } from "@/app/(client-components)/type";
-import reservationService from "@/lib/api/services/reservationService";
+import reservationService, { ReservationBackendRequest } from "@/lib/api/services/reservationService";
 import paymentService from "@/lib/api/services/paymentService";
 import Heading from "@/shared/Heading";
 import { formatDate } from "@/utils/formatDate";
 import Spinner from "@/shared/Spinner";
 import { toast } from "react-hot-toast";
+import Link from "next/link";
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -37,6 +38,7 @@ export default function CheckoutPage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [reservation, setReservation] = useState<any>(null);
   const [formData, setFormData] = useState({
     fullName: "",
@@ -76,6 +78,16 @@ export default function CheckoutPage() {
       try {
         setIsLoading(true);
         
+        // Check if user is logged in
+        const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+        setIsLoggedIn(!!token);
+
+        // If not logged in, don't proceed with fetching hotel data
+        if (!token) {
+          setIsLoading(false);
+          return;
+        }
+
         // Step 1: If we have a reservation ID, fetch the reservation details
         if (reservationId) {
           const reservationData = await reservationService.getReservation(reservationId);
@@ -96,10 +108,7 @@ export default function CheckoutPage() {
         
         // Step 2: Fetch hotel details
         const baseURL = process.env.NEXT_PUBLIC_AMR_API_URL || 'https://amrbooking.onrender.com/api';
-        
-        // Get the token from localStorage if available
-        const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
-        
+
         // Create headers with authentication token
         const headers: Record<string, string> = {
           'Content-Type': 'application/json',
@@ -107,7 +116,6 @@ export default function CheckoutPage() {
         };
         
         if (token) {
-          // Use correct format: "Token <token>" instead of "Bearer <token>"
           headers['Authorization'] = `Token ${token}`;
         }
         
@@ -154,6 +162,15 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Double check if user is logged in before submitting
+    const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+    if (!token) {
+      toast.error("You must be logged in to complete a booking");
+      router.push(`/${params.locale}/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -161,18 +178,27 @@ export default function CheckoutPage() {
       let currentReservation = reservation;
       
       if (!currentReservation) {
-        const reservationData = {
-          hotelId,
-          roomId,
-          checkInDate: formatDate(startDate),
-          checkOutDate: formatDate(endDate),
-          numberOfGuests: guests.guestAdults + guests.guestChildren,
-          guestDetails: {
-            fullName: formData.fullName,
-            email: formData.email,
-            phoneNumber: formData.phoneNumber,
-            specialRequests: formData.specialRequests
-          }
+        // Format dates in the expected format (DD/MM/YYYY)
+        const formatDateForBE = (date: Date | null) => {
+          if (!date) return "";
+          const day = date.getDate().toString().padStart(2, '0');
+          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}/${month}/${year}`;
+        };
+
+        // Create using the backend format
+        const reservationData: ReservationBackendRequest = {
+          room_id: roomId,
+          childs: guests.guestChildren?.toString() || "0",
+          adults: guests.guestAdults?.toString() || "1",
+          price_per_night: (totalPrice / nightsCount).toFixed(0),
+          payment_method: formData.paymentMethod,
+          currency: "USD",
+          special_requests: formData.specialRequests,
+          check_in_date: formatDateForBE(startDate),
+          check_out_date: formatDateForBE(endDate),
+          notes: "Booking from checkout page"
         };
 
         currentReservation = await reservationService.createReservation(reservationData);
@@ -213,9 +239,12 @@ export default function CheckoutPage() {
 
       // Step 3: Update reservation status to confirmed
       if (payment.status === 'completed' || payment.status === 'pending') {
+        // Type assertion to preserve compatibility with the API interface
+        const paymentStatus = payment.status === 'completed' ? 'paid' : 'pending' as 'paid' | 'pending';
+
         const updateReservationData = {
           status: 'confirmed' as const,
-          paymentStatus: payment.status === 'completed' ? 'paid' : 'pending' as const
+          paymentStatus
         };
         
         await reservationService.patchReservation(currentReservation.id, updateReservationData);
@@ -237,6 +266,25 @@ export default function CheckoutPage() {
       <div className="container relative pt-10 pb-20 lg:pt-20 lg:pb-28">
         <div className="flex justify-center items-center h-60">
           <Spinner size="lg" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="container relative pt-10 pb-20 lg:pt-20 lg:pb-28">
+        <div className="bg-white dark:bg-neutral-900 shadow-xl rounded-2xl p-10">
+          <Heading>Login Required</Heading>
+          <p className="mt-4 text-lg">You need to be logged in to make a reservation.</p>
+          <div className="mt-8">
+            <Link
+              href={`/${params.locale}/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`}
+              className="nc-Button relative h-auto inline-flex items-center justify-center rounded-full transition-colors text-sm sm:text-base font-medium py-3 px-4 sm:py-3.5 sm:px-6 disabled:bg-opacity-90 bg-primary-6000 hover:bg-primary-700 text-neutral-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-6000 dark:focus:ring-offset-0"
+            >
+              Sign in
+            </Link>
+          </div>
         </div>
       </div>
     );

@@ -34,13 +34,28 @@ export interface Reservation {
   updatedAt: string;
 }
 
-// Interface for creating a reservation
+// Interface for creating a reservation (backend format)
+export interface ReservationBackendRequest {
+  room_id: string;
+  childs: string;
+  adults: string;
+  price_per_night: string;
+  payment_method: string;
+  currency: string;
+  special_requests: string;
+  check_in_date: string;
+  check_out_date: string;
+  notes?: string;
+}
+
+// Interface for creating a reservation (frontend format)
 export interface ReservationRequest {
   hotelId: string;
   roomId: string;
   checkInDate: string;
   checkOutDate: string;
-  numberOfGuests: number;
+  guestCount: number;
+  specialRequests?: string;
   guestDetails: {
     fullName: string;
     email: string;
@@ -161,14 +176,11 @@ const reservationService = {
 
   /**
    * Create a new reservation
-   * @param reservationData - The data for the new reservation
+   * @param reservationData - The data for the new reservation (can be in backend or frontend format)
    * @returns Promise with created reservation
    */
-  createReservation: async (reservationData: ReservationRequest): Promise<Reservation> => {
+  createReservation: async (reservationData: ReservationRequest | ReservationBackendRequest): Promise<Reservation> => {
     try {
-      // Validate request data
-      // const validatedReservationData = validateRequest(ReservationRequestSchema, reservationData);
-      
       // Get the token directly to make sure it's available
       const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
       
@@ -178,29 +190,46 @@ const reservationService = {
         headers['Authorization'] = `Token ${token}`;
       }
       
-      // Map frontend field names to API expected field names
-      const mappedReservationData = {
-        ...reservationData,
-        check_in_date: reservationData.checkInDate,
-        check_out_date: reservationData.checkOutDate,
-        number_of_guests: reservationData.numberOfGuests,
-        total_price: 300,
-        // Keep other fields as they are
-      };
+      let mappedReservationData;
 
-      // Remove the original properties to avoid duplication
-      delete (mappedReservationData as any).checkInDate;
-      delete (mappedReservationData as any).checkOutDate;
-      delete (mappedReservationData as any).numberOfGuests;
+      // Check if the data is already in the backend format
+      if ('room_id' in reservationData) {
+        console.log('Using backend reservation format:', reservationData);
+        mappedReservationData = reservationData;
+      } else {
+        // Map frontend field names to API expected field names
+        console.log('Converting frontend reservation format to backend format');
+        const frontendData = reservationData as ReservationRequest;
 
-      const response = await apiClient.post<any>('/reservations/', mappedReservationData, { headers });
+        // Format dates from YYYY-MM-DD to DD/MM/YYYY
+        const formatDateForBE = (dateStr: string) => {
+          const [year, month, day] = dateStr.split('-');
+          return `${day}/${month}/${year}`;
+        };
+
+        mappedReservationData = {
+          room_id: frontendData.roomId,
+          childs: "0", // Default value
+          adults: frontendData.guestCount ? frontendData.guestCount.toString() : "1",
+          price_per_night: "0", // This should be set by the API
+          payment_method: "credit_card", // Default value
+          currency: "USD",
+          special_requests: frontendData.specialRequests || "",
+          check_in_date: formatDateForBE(frontendData.checkInDate),
+          check_out_date: formatDateForBE(frontendData.checkOutDate),
+          notes: "Booking from website" // Default notes
+        };
+      }
+
+      const response = await apiClient.post<any>('/reservation/', mappedReservationData, { headers });
       
       console.log('Create reservation response:', response.status);
       
       // Validate response data - using unknown as intermediary
-      const validatedResponse = validateResponse(ReservationSchema, response.data as unknown);
+      // const validatedResponse = validateResponse(ReservationSchema, response.data as unknown);
       
-      return validatedResponse as unknown as Reservation;
+      // return validatedResponse as unknown as Reservation;
+      return response.data;
     } catch (error: any) {
       console.error('Create reservation error:', error);
       throw new Error(`Failed to create reservation: ${error.message}`);
@@ -245,9 +274,10 @@ const reservationService = {
       console.log('Update reservation response:', response.status);
       
       // Validate response data - using unknown as intermediary
-      const validatedResponse = validateResponse(ReservationSchema, response.data as unknown);
+      // const validatedResponse = validateResponse(ReservationSchema, response.data as unknown);
       
-      return validatedResponse as unknown as Reservation;
+      // return validatedResponse as unknown as Reservation;
+      return response.data;
     } catch (error: any) {
       console.error('Update reservation error:', error);
       throw new Error(`Failed to update reservation: ${error.message}`);
@@ -279,9 +309,10 @@ const reservationService = {
       console.log('Patch reservation response:', response.status);
       
       // Validate response data - using unknown as intermediary
-      const validatedResponse = validateResponse(ReservationSchema, response.data as unknown);
+      // const validatedResponse = validateResponse(ReservationSchema, response.data as unknown);
       
-      return validatedResponse as unknown as Reservation;
+      // return validatedResponse as unknown as Reservation;
+      return response.data;
     } catch (error: any) {
       console.error('Patch reservation error:', error);
       throw new Error(`Failed to patch reservation: ${error.message}`);
@@ -326,9 +357,10 @@ const reservationService = {
       console.log('Get hotel reservations response:', response.status);
       
       // Validate response data - using unknown as intermediary
-      const validatedResponse = validateResponse(PaginatedReservationListSchema, response.data as unknown);
+      // const validatedResponse = validateResponse(PaginatedReservationListSchema, response.data as unknown);
       
-      return validatedResponse as unknown as PaginatedReservationList;
+      // return validatedResponse as unknown as PaginatedReservationList;
+      return response.data;
     } catch (error: any) {
       console.error('Get hotel reservations error:', error);
       throw new Error(`Failed to retrieve reservations for hotel ${hotelId}: ${error.message}`);
@@ -351,9 +383,10 @@ const reservationService = {
       console.log('Get room reservations response:', response.status);
       
       // Validate response data - using unknown as intermediary
-      const validatedResponse = validateResponse(PaginatedReservationListSchema, response.data as unknown);
+      // const validatedResponse = validateResponse(PaginatedReservationListSchema, response.data as unknown);
       
-      return validatedResponse as unknown as PaginatedReservationList;
+      // return validatedResponse as unknown as PaginatedReservationList;
+      return response.data;
     } catch (error: any) {
       console.error('Get room reservations error:', error);
       throw new Error(`Failed to retrieve reservations for room ${roomId}: ${error.message}`);
@@ -375,9 +408,10 @@ const reservationService = {
       console.log('Cancel reservation response:', response.status);
       
       // Validate response data - using unknown as intermediary
-      const validatedResponse = validateResponse(ReservationSchema, response.data as unknown);
+      // const validatedResponse = validateResponse(ReservationSchema, response.data as unknown);
       
-      return validatedResponse as unknown as Reservation;
+      // return validatedResponse as unknown as Reservation;
+      return response.data;
     } catch (error: any) {
       console.error('Cancel reservation error:', error);
       throw new Error(`Failed to cancel reservation ${reservationId}: ${error.message}`);
