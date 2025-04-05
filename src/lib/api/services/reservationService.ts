@@ -140,6 +140,12 @@ const reservationService = {
    */
   getReservation: async (reservationId: string): Promise<any> => {
     try {
+      // Check if the reservation ID is valid
+      if (!reservationId || reservationId === 'undefined') {
+        console.error('Invalid reservation ID:', reservationId);
+        throw new Error('Invalid reservation ID. Cannot retrieve reservation details.');
+      }
+
       console.log(`Fetching reservation details for ID: ${reservationId}`);
       
       // Get the token directly to make sure it's available
@@ -154,7 +160,8 @@ const reservationService = {
         throw new Error('Authentication required to view reservation details');
       }
       
-      const response = await apiClient.get(`/reservations/${reservationId}/`, { headers });
+      // Call /reservation/{id}/ instead of /reservations/{id}/
+      const response = await apiClient.get(`/reservation/${reservationId}/`, { headers });
       
       console.log(`Reservation details retrieved, status: ${response.status}`);
       

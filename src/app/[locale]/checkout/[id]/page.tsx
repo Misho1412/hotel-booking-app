@@ -89,21 +89,29 @@ export default function CheckoutPage() {
         }
 
         // Step 1: If we have a reservation ID, fetch the reservation details
-        if (reservationId) {
-          const reservationData = await reservationService.getReservation(reservationId);
-          setReservation(reservationData);
-          console.log("Loaded reservation:", reservationData);
-          
-          // Pre-fill the form with reservation data if available
-          if (reservationData.guestDetails) {
-            setFormData(prev => ({
-              ...prev,
-              fullName: reservationData.guestDetails.fullName || "",
-              email: reservationData.guestDetails.email || "",
-              phoneNumber: reservationData.guestDetails.phoneNumber || "",
-              specialRequests: reservationData.guestDetails.specialRequests || ""
-            }));
+        if (reservationId && reservationId !== 'undefined') {
+          console.log('Fetching existing reservation:', reservationId);
+          try {
+            const reservationData = await reservationService.getReservation(reservationId);
+            setReservation(reservationData);
+            console.log("Loaded reservation:", reservationData);
+            
+            // Pre-fill the form with reservation data if available
+            if (reservationData.guestDetails) {
+              setFormData(prev => ({
+                ...prev,
+                fullName: reservationData.guestDetails.fullName || "",
+                email: reservationData.guestDetails.email || "",
+                phoneNumber: reservationData.guestDetails.phoneNumber || "",
+                specialRequests: reservationData.guestDetails.specialRequests || ""
+              }));
+            }
+          } catch (error) {
+            console.error('Error loading reservation:', error);
+            // Continue with hotel fetch even if reservation fetch fails
           }
+        } else {
+          console.log('No valid reservation ID found, skipping reservation fetch');
         }
         
         // Step 2: Fetch hotel details
@@ -249,9 +257,24 @@ export default function CheckoutPage() {
         
         await reservationService.patchReservation(currentReservation.id, updateReservationData);
         toast.success("Booking confirmed!");
+        
+        // Step 4: Make a GET request to /reservation/{id}/ to get the latest reservation data
+        if (currentReservation.id && currentReservation.id !== 'undefined') {
+          console.log(`Making GET request to /reservation/${currentReservation.id}/ after payment success`);
+          try {
+            const updatedReservation = await reservationService.getReservation(currentReservation.id);
+            console.log("Updated reservation data after payment:", updatedReservation);
+            // We don't need to do anything with this data, just making the request
+          } catch (error) {
+            console.error("Error getting updated reservation details:", error);
+            // Don't block the flow if this request fails
+          }
+        } else {
+          console.error("Invalid reservation ID after payment, cannot make GET request:", currentReservation.id);
+        }
       }
 
-      // Step 4: Navigate to success page with reservation and payment IDs
+      // Step 5: Navigate to success page with reservation and payment IDs
       router.push(`/${params.locale}/booking-confirmation/${currentReservation.id}?paymentId=${payment.id}`);
     } catch (error: any) {
       console.error("Booking error:", error);
