@@ -3,9 +3,11 @@
 import React from "react";
 import Nav from "@/shared/Nav";
 import NavItem from "@/shared/NavItem";
+import useTranslation from "@/hooks/useTranslation";
+import { usePathname } from "next/navigation";
 
-// Available cities
-const CITIES = ["All", "New York", "Tokyo", "Paris", "London", "Dubai", "Sydney", "Singapore"];
+// Available cities (English labels)
+const CITIES = ["All", "Makkah", "Madinah"];
 
 interface CityTabsProps {
   tabActive?: string;
@@ -16,9 +18,29 @@ const CityTabs: React.FC<CityTabsProps> = ({
   tabActive = "All",
   onTabChange,
 }) => {
+  const pathname = usePathname();
+  const isArabic = pathname?.startsWith('/ar');
+  const t = useTranslation('stay-listing');
+
   const handleTabChange = (item: string) => {
     if (onTabChange) {
       onTabChange(item);
+    }
+  };
+
+  // Get translated city names
+  const getTranslatedCityName = (city: string): string => {
+    if (!isArabic) return city;
+    
+    switch(city.toLowerCase()) {
+      case 'all':
+        return t('cityTabs.all');
+      case 'makkah':
+        return t('cityTabs.makkah');
+      case 'madinah':
+        return t('cityTabs.madinah');
+      default:
+        return city;
     }
   };
 
@@ -34,7 +56,7 @@ const CityTabs: React.FC<CityTabsProps> = ({
             isActive={tabActive === item}
             onClick={() => handleTabChange(item)}
           >
-            {item}
+            {getTranslatedCityName(item)}
           </NavItem>
         ))}
       </Nav>

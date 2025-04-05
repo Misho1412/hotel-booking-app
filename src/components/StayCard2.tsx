@@ -7,6 +7,8 @@ import BtnLikeIcon from "@/components/BtnLikeIcon";
 import SaleOffBadge from "@/components/SaleOffBadge";
 import Badge from "@/shared/Badge";
 import Link from "next/link";
+import useTranslation from "@/hooks/useTranslation";
+import { usePathname } from "next/navigation";
 
 export interface StayCard2Props {
   className?: string;
@@ -36,6 +38,10 @@ const StayCard2: FC<StayCard2Props> = ({
     reviewCount,
     id,
   } = data;
+  
+  const pathname = usePathname();
+  const isArabic = pathname?.startsWith('/ar');
+  const t = useTranslation('stay-listing');
 
   const renderSliderGallery = () => {
     return (
@@ -54,14 +60,19 @@ const StayCard2: FC<StayCard2Props> = ({
   };
 
   const renderContent = () => {
+    // Get translated text
+    const bedsText = isArabic ? t('stayCard.beds') : 'beds';
+    const nightText = isArabic ? t('stayCard.night') : '/night';
+    const adsText = isArabic ? t('stayCard.ads') : 'ADS';
+
     return (
       <div className={size === "default" ? "mt-3 space-y-3" : "mt-2 space-y-2"}>
         <div className="space-y-2">
           <span className="text-sm text-neutral-500 dark:text-neutral-400">
-            {listingCategory.name} · {bedrooms} beds
+            {listingCategory.name} · {bedrooms} {bedsText}
           </span>
           <div className="flex items-center space-x-2">
-            {isAds && <Badge name="ADS" color="green" />}
+            {isAds && <Badge name={adsText} color="green" />}
             <h2
               className={`font-semibold capitalize text-neutral-900 dark:text-white ${
                 size === "default" ? "text-base" : "text-base"
@@ -102,7 +113,7 @@ const StayCard2: FC<StayCard2Props> = ({
             {` `}
             {size === "default" && (
               <span className="text-sm text-neutral-500 dark:text-neutral-400 font-normal">
-                /night
+                {nightText}
               </span>
             )}
           </span>

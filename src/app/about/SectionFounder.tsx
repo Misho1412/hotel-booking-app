@@ -1,6 +1,8 @@
 import Heading from "@/shared/Heading";
 import Image from "next/image";
 import React from "react";
+import useTranslation from "@/hooks/useTranslation";
+import { usePathname } from "next/navigation";
 
 export interface People {
   id: string;
@@ -41,16 +43,34 @@ const FOUNDER_DEMO: People[] = [
 ];
 
 const SectionFounder = () => {
+  const t = useTranslation('about');
+  const { pathname } = usePathname();
+  const isArabic = pathname?.startsWith('/ar');
+  
+  // Get translated team data
+  const getTranslatedTeam = () => {
+    if (!isArabic) return FOUNDER_DEMO;
+    
+    return t('founder.team')
+      ? FOUNDER_DEMO.map((member, index) => ({
+          ...member,
+          name: t(`founder.team.${index}.name`) || member.name,
+          job: t(`founder.team.${index}.job`) || member.job,
+        }))
+      : FOUNDER_DEMO;
+  };
+  
+  const translatedTeam = getTranslatedTeam();
+
   return (
     <div className="nc-SectionFounder relative">
       <Heading
-        desc="We’re impartial and independent, and every day we create distinctive,
-          world-class programmes and content"
+        desc={t('founder.desc')}
       >
-        ⛱ Founder
+        {t('founder.title')}
       </Heading>
       <div className="grid sm:grid-cols-2 gap-x-5 gap-y-8 lg:grid-cols-4 xl:gap-x-8">
-        {FOUNDER_DEMO.map((item) => (
+        {translatedTeam.map((item) => (
           <div key={item.id} className="max-w-sm">
             <div className="relative h-0 aspect-h-1 aspect-w-1 rounded-xl overflow-hidden">
               <Image

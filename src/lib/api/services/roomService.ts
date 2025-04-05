@@ -198,7 +198,7 @@ const roomService = {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      const response = await apiClient.get<PaginatedRoomList>(`/api/rooms/`, { 
+      const response = await apiClient.get<PaginatedRoomList>(`/rooms/`, { 
         params: { hotel_id: hotelId, page, page_size: pageSize },
         headers
       });
@@ -242,7 +242,7 @@ const roomService = {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      const response = await apiClient.get<Room>(`/api/rooms/${roomId}/`, {
+      const response = await apiClient.get<Room>(`/rooms/${roomId}/`, {
         headers
       });
       
@@ -512,7 +512,7 @@ const roomService = {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      const response = await apiClient.get(`/api/roomtypes/${roomTypeId}/rates`, {
+      const response = await apiClient.get(`/roomtypes/${roomTypeId}/rates`, {
         params: { page, limit },
         headers
       });
@@ -554,7 +554,7 @@ const roomService = {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      const response = await apiClient.get(`/api/room-rates/${rateId}/`, {
+      const response = await apiClient.get(`/room-rates/${rateId}/`, {
         headers
       });
       
@@ -587,7 +587,7 @@ const roomService = {
       // Validate request data
       const validatedRateData = validateRequest(RoomRateRequestSchema, rateData);
       
-      const response = await apiClient.post(`/api/room-rates/`, validatedRateData);
+      const response = await apiClient.post(`/room-rates/`, validatedRateData);
       
       console.log(`Create room rate API response status: ${response.status}`);
       
@@ -617,7 +617,7 @@ const roomService = {
       // Validate request data
       const validatedRateData = validateRequest(RoomRateRequestSchema, rateData);
       
-      const response = await apiClient.put(`/api/room-rates/${rateId}/`, validatedRateData);
+      const response = await apiClient.put(`/room-rates/${rateId}/`, validatedRateData);
       
       console.log(`Update room rate API response status: ${response.status}`);
       
@@ -640,7 +640,7 @@ const roomService = {
       // Validate request data
       const validatedRateData = validateRequest(PatchedRoomRateRequestSchema, rateData);
       
-      const response = await apiClient.patch(`/api/room-rates/${rateId}/`, validatedRateData);
+      const response = await apiClient.patch(`/room-rates/${rateId}/`, validatedRateData);
       
       console.log(`Patch room rate API response status: ${response.status}`);
       
@@ -687,6 +687,47 @@ const roomService = {
     } catch (error) {
       console.error('Check room availability error:', error);
       throw error;
+    }
+  },
+
+  /**
+   * Get detailed information for a specific room
+   * @param roomId - The ID of the room to retrieve detailed information for
+   * @returns Promise with detailed room information
+   */
+  getRoomDetails: async (roomId: string): Promise<any> => {
+    try {
+      console.log(`Fetching detailed room information for ID: ${roomId}`);
+      
+      // Get the token directly to make sure it's available
+      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+      console.log(`Authentication token available: ${!!token}`);
+      
+      // Create headers with token if available
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await apiClient.get(`/room-details/${roomId}/`, {
+        headers
+      });
+      
+      console.log(`Room details API response status: ${response.status}`);
+      
+      // Return the actual response data without strict type validation
+      // This allows flexibility with the response structure
+      return response.data;
+    } catch (error: any) {
+      console.error('Get room details error:', error);
+      
+      // Handle authentication errors
+      if (error.response?.status === 401) {
+        console.error("Authentication failed when accessing room details API");
+        throw new Error("Authentication required to access detailed room information");
+      }
+      
+      throw new Error(`Failed to retrieve detailed information for room ${roomId}: ${error.message}`);
     }
   },
 };

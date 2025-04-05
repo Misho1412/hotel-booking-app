@@ -60,7 +60,7 @@ const SectionHero: FC<SectionHeroProps> = ({ className = "" }) => {
           data-aos-delay="300"
           data-aos-duration="1000"
         >
-          <Image className="w-full" src={imagePng} alt="hero" priority />
+          <Image className="w-half" src={imagePng} alt="hero" priority />
         </div>
       </div>
 

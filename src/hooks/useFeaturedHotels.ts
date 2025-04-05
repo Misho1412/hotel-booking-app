@@ -5,6 +5,7 @@ import { StayDataType } from '@/data/types';
 import { useAuth } from '@/context/AuthContext';
 import { IHotel } from '@/lib/api/schemas/hotel';
 import hotelService from '@/lib/api/services/hotelService';
+import { usePathname } from 'next/navigation';
 
 // Define a cache for hotel data
 interface HotelCache {
@@ -39,6 +40,10 @@ export function useFeaturedHotels(limit: number = 8, city?: string) {
   const initialLoadAttemptedRef = useRef(false);
   const requestIdRef = useRef(0);
   const retryCountRef = useRef(0);
+  
+  // Get current locale for translations
+  const pathname = usePathname();
+  const isArabic = pathname?.startsWith('/ar');
   
   // Create a cache key based on the parameters
   const getCacheKey = useCallback(() => {
@@ -170,7 +175,7 @@ export function useFeaturedHotels(limit: number = 8, city?: string) {
       
       // Convert to UI format
       console.log('Converting API data to UI format...');
-      let stayData = hotelsToStayData(hotels);
+      let stayData = hotelsToStayData(hotels, isArabic);
       console.log('Converted data count:', stayData.length);
       
       // Filter by city if needed
@@ -230,7 +235,7 @@ export function useFeaturedHotels(limit: number = 8, city?: string) {
         apiActions.setLoading(false);
       }
     }
-  }, [apiActions, canMakeFetchRequest, city, getCacheKey, isCacheValid, isAuthenticated, limit]);
+  }, [apiActions, canMakeFetchRequest, city, getCacheKey, isArabic, limit]);
   
   // Clear cache and reload data
   const refetch = useCallback(() => {

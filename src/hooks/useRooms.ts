@@ -28,6 +28,15 @@ export const useRooms = () => {
     });
   };
 
+  // Get detailed information for a room
+  const getRoomDetails = (roomId: string) => {
+    return useQuery({
+      queryKey: ['room-details', roomId],
+      queryFn: () => roomService.getRoomDetails(roomId),
+      enabled: !!roomId,
+    });
+  };
+
   // Check room availability
   const checkRoomAvailability = (params: RoomAvailabilityParams) => {
     return useQuery({
@@ -87,6 +96,7 @@ export const useRooms = () => {
   return {
     getHotelRooms,
     getRoom,
+    getRoomDetails,
     checkRoomAvailability,
     createRoom,
     updateRoom,

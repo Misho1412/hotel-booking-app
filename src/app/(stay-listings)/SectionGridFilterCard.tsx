@@ -10,6 +10,8 @@ import Spinner from "@/shared/Spinner";
 import Alert from "@/shared/Alert";
 import ButtonPrimary from "@/shared/ButtonPrimary";
 import CityTabs from "./components/CityTabs";
+import useTranslation from "@/hooks/useTranslation";
+import { usePathname } from "next/navigation";
 
 export interface SectionGridFilterCardProps {
   className?: string;
@@ -22,6 +24,10 @@ const SectionGridFilterCard: FC<SectionGridFilterCardProps> = ({
   const [shouldFetch, setShouldFetch] = useState<{city?: string, isInitial: boolean}>({
     isInitial: true
   });
+  
+  const pathname = usePathname();
+  const isArabic = pathname?.startsWith('/ar');
+  const t = useTranslation('stay-listing');
   
   const {
     isLoading,
@@ -92,7 +98,7 @@ const SectionGridFilterCard: FC<SectionGridFilterCardProps> = ({
       {isLoading && (
         <div className="flex items-center justify-center py-10">
           <Spinner className="h-10 w-10" />
-          <span className="ml-4 text-lg">Loading hotels...</span>
+          <span className="ml-4 text-lg">{t('loading')}</span>
         </div>
       )}
 
@@ -100,13 +106,13 @@ const SectionGridFilterCard: FC<SectionGridFilterCardProps> = ({
       {error && !isLoading && (
         <Alert type="error" className="mb-8">
           <div>
-            <p className="font-medium">Error loading hotels: {error.message}</p>
-            <p className="mt-2">We couldn't load hotels from the backend. Please try again.</p>
+            <p className="font-medium">{t('error.title')}{error.message}</p>
+            <p className="mt-2">{t('error.message')}</p>
             <button 
               className="underline mt-2 font-medium" 
               onClick={handleRetry}
             >
-              Retry
+              {t('error.retry')}
             </button>
           </div>
         </Alert>
@@ -115,13 +121,13 @@ const SectionGridFilterCard: FC<SectionGridFilterCardProps> = ({
       {/* EMPTY STATE */}
       {!isLoading && !error && stayData.length === 0 && (
         <div className="text-center py-10">
-          <h3 className="text-lg font-medium mb-4">No hotels found</h3>
+          <h3 className="text-lg font-medium mb-4">{t('empty.title')}</h3>
           <p className="mb-4 text-neutral-500">
-            We couldn't find any hotels matching your criteria.
+            {t('empty.message')}
           </p>
           {activeCity !== "All" && (
             <ButtonPrimary onClick={() => handleTabChange("All")}>
-              View All Hotels
+              {t('empty.viewAll')}
             </ButtonPrimary>
           )}
         </div>
@@ -150,7 +156,7 @@ const SectionGridFilterCard: FC<SectionGridFilterCardProps> = ({
                       : "text-neutral-700 hover:bg-neutral-100"
                   }`}
                 >
-                  <i className="las la-angle-left"></i>
+                  <i className={`las ${isArabic ? 'la-angle-right' : 'la-angle-left'}`}></i>
                 </button>
                 
                 {/* Page numbers */}
@@ -178,7 +184,7 @@ const SectionGridFilterCard: FC<SectionGridFilterCardProps> = ({
                       : "text-neutral-700 hover:bg-neutral-100"
                   }`}
                 >
-                  <i className="las la-angle-right"></i>
+                  <i className={`las ${isArabic ? 'la-angle-left' : 'la-angle-right'}`}></i>
                 </button>
               </nav>
             </div>

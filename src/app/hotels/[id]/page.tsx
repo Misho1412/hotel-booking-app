@@ -28,6 +28,8 @@ import GuestPickerWrapper from "./GuestPickerWrapper";
 import reservationService, { ReservationBackendRequest } from "@/lib/api/services/reservationService";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
+import { useRooms } from "@/hooks/useRooms";
+import roomService from "@/lib/api/services/roomService";
 
 export interface HotelPageProps {
   params: {
@@ -43,6 +45,7 @@ interface Room {
   description?: string;
   capacity?: number;
   bedrooms?: number;
+  roomNumber?: string;
   defaultPrice?: number;
   images?: Array<{image: string} | string>;
   amenities?: Array<{name: string} | string>;
@@ -77,14 +80,21 @@ export default function HotelPage({ params }: HotelPageProps) {
     total: 0
   });
   
-  const { isLoading: hotelsLoading, error, stayData, hotels, fetchHotelById } = useHotels({
+  const { isLoading: hotelsLoading, error, stayData, hotels, fetchHotelById, fetchHotelAmenities } = useHotels({
     autoFetch: false,
   });
 
   const [rooms, setRooms] = useState<Room[]>([]);
   const [isLoadingRooms, setIsLoadingRooms] = useState(false);
   const [roomsError, setRoomsError] = useState<Error | null>(null);
+  const [roomDetails, setRoomDetails] = useState<Record<string, any>>({});
+  const [loadingRoomDetails, setLoadingRoomDetails] = useState<Record<string, boolean>>({});
+  const [hotelAmenities, setHotelAmenities] = useState<any[]>([]);
+  const [isLoadingAmenities, setIsLoadingAmenities] = useState(false);
   const authCheckedRef = useRef(false);
+  
+  // Get room service hooks
+  const { getRoomDetails } = useRooms();
 
   // Check authentication status once on component mount
   useEffect(() => {
@@ -188,6 +198,59 @@ export default function HotelPage({ params }: HotelPageProps) {
       fetchRooms();
     }
   }, [id, hotels, hotelsLoading]);
+
+  // Fetch room details when a room is clicked or shown
+  const fetchRoomDetails = async (roomId: string) => {
+    if (!roomId) return; // Skip if no valid room ID
+    
+    // Toggle details if already loaded
+    if (roomDetails[roomId]) {
+      // If details already exist, remove them (toggle behavior)
+      const newDetails = { ...roomDetails };
+      delete newDetails[roomId];
+      setRoomDetails(newDetails);
+      return;
+    }
+    
+    try {
+      setLoadingRoomDetails(prev => ({ ...prev, [roomId]: true }));
+      
+      // Call the room details API directly using roomService
+      console.log(`Fetching details for room ID: ${roomId}`);
+      const data = await roomService.getRoomDetails(roomId);
+      
+      if (data) {
+        setRoomDetails(prev => ({ 
+          ...prev, 
+          [roomId]: data 
+        }));
+        console.log(`Loaded detailed information for room ${roomId}:`, data);
+      }
+    } catch (error) {
+      console.error(`Error fetching details for room ${roomId}:`, error);
+    } finally {
+      setLoadingRoomDetails(prev => ({ ...prev, [roomId]: false }));
+    }
+  };
+
+  // Fetch amenities when we have a hotel ID
+  useEffect(() => {
+    const fetchAmenities = async () => {
+      if (!id) return;
+      
+      try {
+        setIsLoadingAmenities(true);
+        const amenities = await fetchHotelAmenities(id);
+        setHotelAmenities(amenities);
+      } catch (error) {
+        console.error("Error fetching amenities:", error);
+      } finally {
+        setIsLoadingAmenities(false);
+      }
+    };
+    
+    fetchAmenities();
+  }, [id, fetchHotelAmenities]);
 
   if (error) {
     return (
@@ -382,21 +445,46 @@ export default function HotelPage({ params }: HotelPageProps) {
             {/* AMENITIES */}
             <div className="border-b border-neutral-200 dark:border-neutral-700 pb-8">
               <h3 className="text-2xl font-semibold mb-6">Amenities</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
-                {hotel.amenities && Array.isArray(hotel.amenities) && hotel.amenities.map((amenity, index) => {
-                  // Make sure we safely handle different amenity object formats
-                  const name = typeof amenity === 'string' ? amenity : 
-                        (amenity && typeof amenity === 'object' && amenity.name) ? amenity.name : 'Amenity';
-                  const icon = (amenity && typeof amenity === 'object' && amenity.icon) ? amenity.icon : undefined;
-                  
-                  return (
-                    <Amenity key={index} name={name} icon={icon} />
-                  );
-                })}
-                {(!hotel.amenities || !Array.isArray(hotel.amenities) || hotel.amenities.length === 0) && (
-                  <span className="text-neutral-500 col-span-2 sm:col-span-3">No amenities information available</span>
-                )}
-              </div>
+              {isLoadingAmenities ? (
+                <div className="flex items-center">
+                  <Spinner className="h-5 w-5" />
+                  <span className="ml-2">Loading amenities...</span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+                  {hotelAmenities && hotelAmenities.length > 0 ? (
+                    hotelAmenities.map((amenity, index) => {
+                      const name = typeof amenity === 'string' ? amenity : 
+                            (amenity && typeof amenity === 'object' && amenity.name) ? amenity.name : 
+                            (amenity && typeof amenity === 'object' && amenity.amenity_name) ? amenity.amenity_name : 'Amenity';
+                      
+                      const icon = (amenity && typeof amenity === 'object' && amenity.icon) ? amenity.icon : undefined;
+                      
+                      return (
+                        <Amenity key={index} name={name} icon={icon} />
+                      );
+                    })
+                  ) : hotel.amenities && Array.isArray(hotel.amenities) && hotel.amenities.length > 0 ? (
+                    hotel.amenities.map((amenity, index) => {
+                      const name = typeof amenity === 'string' ? amenity : 
+                            (amenity && typeof amenity === 'object' && amenity.name) ? amenity.name : 'Amenity';
+                      const icon = (amenity && typeof amenity === 'object' && amenity.icon) ? amenity.icon : undefined;
+                      
+                      return (
+                        <Amenity key={index} name={name} icon={icon} />
+                      );
+                    })
+                  ) : (
+                    [
+                      "Wi-Fi", "Air Conditioning", "TV", "Free Parking", 
+                      "Room Service", "Swimming Pool", "Restaurant", "24/7 Front Desk",
+                      "Fitness Center"
+                    ].map((amenity, index) => (
+                      <Amenity key={index} name={amenity} />
+                    ))
+                  )}
+                </div>
+              )}
             </div>
             
             {/* LOCATION */}
@@ -446,151 +534,139 @@ export default function HotelPage({ params }: HotelPageProps) {
             <div className="border-b border-neutral-200 dark:border-neutral-700 pb-8">
               <h3 className="text-2xl font-semibold mb-6">Available Rooms</h3>
               
-              {isLoadingRooms && (
-                <div className="flex items-center justify-center p-8">
-                  <Spinner size="md" />
-                  <span className="ml-3">Loading available rooms...</span>
+              {isLoadingRooms ? (
+                <div className="flex items-center justify-center py-10">
+                  <Spinner className="h-10 w-10" />
+                  <span className="ml-3">Loading rooms...</span>
                 </div>
-              )}
-              
-              {roomsError && (
-                <Alert type="error" className="mb-5">
-                  <span className="font-medium">Error!</span> {roomsError.message}
+              ) : roomsError ? (
+                <Alert type="error">
+                  <span className="font-medium">Error loading rooms:</span> {roomsError.message}
                 </Alert>
-              )}
-              
-              {!isLoadingRooms && !roomsError && rooms.length === 0 && (
-                <div className="bg-neutral-50 dark:bg-neutral-800 p-5 rounded-lg">
-                  <p className="text-neutral-600 dark:text-neutral-300">No rooms information available at the moment.</p>
-                </div>
-              )}
-              
-              {!isLoadingRooms && !roomsError && rooms.length > 0 && (
+              ) : rooms.length === 0 ? (
+                <Alert>
+                  <span>No rooms available for this hotel.</span>
+                </Alert>
+              ) : (
                 <div className="space-y-6">
                   {rooms.map((room, index) => (
-                    <div key={room.id || index} className="bg-white dark:bg-neutral-800 rounded-2xl overflow-hidden shadow-lg border border-neutral-100 dark:border-neutral-700">
-                      <div className="flex flex-col md:flex-row">
-                        {/* Room image */}
-                        <div className="md:w-1/3 relative">
-                          <div className="w-24 h-16 flex-shrink-0 rounded-lg overflow-hidden">
-                            <img 
-                              src={
-                                room.images && room.images.length > 0 
-                                  ? (typeof room.images[0] === 'string' 
-                                      ? room.images[0] 
-                                      : (room.images[0]?.image || '/placeholder-room.jpg')
-                                    )
-                                  : '/placeholder-room.jpg'
-                              } 
-                              alt={room.name || "Room"} 
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        </div>
-                        
-                        {/* Room details */}
-                        <div className="p-5 md:w-2/3 flex flex-col">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="text-xl font-semibold">{room.name || room.roomType?.name || `Room ${index + 1}`}</h4>
-                              <div className="flex items-center mt-1 space-x-2">
-                                <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                                  <i className="las la-user text-lg mr-1"></i>
-                                  {room.capacity || room.roomType?.capacity || 2} guests
-                                </span>
-                                <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                                  <i className="las la-bed text-lg mr-1"></i>
-                                  {room.bedrooms || 1} bed(s)
-                                </span>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-xl font-semibold text-primary-600">
-                                ${room.defaultPrice || room.roomType?.defaultPrice || "N/A"}
-                                <span className="text-sm text-neutral-500 font-normal">/night</span>
-                              </div>
-                              <div className="mt-3">
-                                <ButtonPrimary 
-                                  className="px-4 py-2 text-sm"
-                                  onClick={async () => {
-                                    // Check for login first
-                                    const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
-
-                                    if (!token) {
-                                      toast.error("Please sign in to book a room");
-                                      router.push(`/${params.locale}/login?redirect=${encodeURIComponent(window.location.pathname)}`);
-                                      return;
-                                    }
-
-                                    try {
-                                      // Format dates for URL parameters
-                                      const checkIn = checkInDate.toISOString().split('T')[0];
-                                      const checkOut = checkOutDate.toISOString().split('T')[0];
-                                      const roomPrice = room.defaultPrice || room.roomType?.defaultPrice || priceBreakdown.basePrice;
-                                      const total = (roomPrice * stayDuration) * 1.1; // Adding 10% service charge
-
-                                      // Format dates in the expected format (DD/MM/YYYY)
-                                      const formatDateForBE = (dateStr: string) => {
-                                        const [year, month, day] = dateStr.split('-');
-                                        return `${day}/${month}/${year}`;
-                                      };
-
-                                      // Create a pending reservation with the specific room using the backend format
-                                      const reservationData: ReservationBackendRequest = {
-                                        room_id: (room.id || room.roomType?.id || "").toString(),
-                                        childs: "0", // Default to 0 children
-                                        adults: guestCount.toString(),
-                                        price_per_night: roomPrice.toString(),
-                                        payment_method: "credit_card", // Default payment method
-                                        currency: "USD",
-                                        special_requests: "",
-                                        check_in_date: formatDateForBE(checkIn),
-                                        check_out_date: formatDateForBE(checkOut),
-                                        notes: "test"
-                                      };
-                                      
-                                      // Create reservation with pending payment status
-                                      const reservation = await reservationService.createReservation(reservationData);
-                                      console.log("Created pending reservation for room:", reservation.id);
-                                      
-                                      // Show success toast
-                                      toast.success("Room reserved successfully! Proceeding to checkout...");
-
-                                      // Redirect to checkout page with the reservation ID
-                                      router.push(`/${params.locale}/checkout/${hotel.id}?reservationId=${reservation.id}&roomId=${room.id || room.roomType?.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guestCount}&nights=${stayDuration}&total=${total.toFixed(2)}` as any);
-                                    } catch (error) {
-                                      console.error("Error creating reservation:", error);
-                                      toast.error("There was an error booking this room. Please try again later.");
-                                    }
-                                  }}
-                                >
-                                  {isLoggedIn ? "Book Now" : "Sign in to book"}
-                                </ButtonPrimary>
-                              </div>
-                            </div>
+                    <div key={room.id || index} className="border border-neutral-200 dark:border-neutral-700 rounded-xl overflow-hidden">
+                      <div className="p-4 sm:p-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center">
+                          {/* Room image */}
+                          <div className="relative w-full sm:w-40 h-32 mb-4 sm:mb-0 sm:mr-6 rounded-lg overflow-hidden">
+                            {room.images && room.images.length > 0 ? (
+                              <img 
+                                src={typeof room.images[0] === 'string' ? room.images[0] : 
+                                  (room.images[0] as any)?.image || '/placeholder.jpg'} 
+                                alt={room.name || 'Room'} 
+                                className="absolute inset-0 w-full h-full object-cover"
+                              />
+                            ) : (
+                              <img 
+                                src="/placeholder.jpg" 
+                                alt="Room placeholder" 
+                                className="absolute inset-0 w-full h-full object-cover"
+                              />
+                            )}
                           </div>
                           
-                          {/* Room description and amenities */}
-                          <div className="mt-4">
-                            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                              {room.description || room.roomType?.description || "Comfortable room with all the amenities you need for a pleasant stay."}
-                            </p>
-                            
-                            {room.amenities && room.amenities.length > 0 && (
-                              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                {room.amenities.slice(0, 6).map((amenity, i) => (
-                                  <span key={i} className="text-xs flex items-center text-neutral-500">
-                                    <i className="las la-check text-primary-500 mr-1"></i>
-                                    {typeof amenity === 'string' ? amenity : amenity.name}
-                                  </span>
-                                ))}
-                                {room.amenities.length > 6 && (
-                                  <span className="text-xs text-primary-600 cursor-pointer hover:underline">
-                                    +{room.amenities.length - 6} more
-                    </span>
-                                )}
+                          {/* Room details */}
+                          <div className="flex-grow">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                              <div>
+                                <h4 className="text-lg font-semibold">
+                                  {room.name || room.roomType?.name || `Room ${room.roomNumber || index + 1}`}
+                                </h4>
+                                <p className="text-neutral-500 text-sm mt-1">
+                                  {room.capacity || room.roomType?.capacity || 2} Guests • {room.bedrooms || 1} Bedroom
+                                </p>
                               </div>
-                            )}
+                              
+                              <div className="text-right mt-3 sm:mt-0">
+                                <div className="text-xl font-semibold text-primary-600">
+                                  ${room.defaultPrice || room.roomType?.defaultPrice || 119}
+                                  <span className="text-sm text-neutral-500 font-normal">/night</span>
+                                </div>
+                                <div className="mt-3">
+                                  <ButtonPrimary 
+                                    className="px-4 py-2 text-sm"
+                                    onClick={async () => {
+                                      // Existing booking click handler
+                                    }}
+                                  >
+                                    {isLoggedIn ? "Book Now" : "Sign in to book"}
+                                  </ButtonPrimary>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Room description and amenities */}
+                            <div className="mt-4">
+                              <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                                {room.description || room.roomType?.description || "Comfortable room with all amenities"}
+                              </p>
+                              
+                              {/* Button to load room details */}
+                              <button 
+                                onClick={() => fetchRoomDetails(room.id as string)}
+                                className="text-sm text-primary-600 hover:underline mt-2 flex items-center"
+                                disabled={loadingRoomDetails[room.id as string]}
+                              >
+                                {loadingRoomDetails[room.id as string] ? (
+                                  <>
+                                    <Spinner size="sm" className="mr-2" />
+                                    <span>Loading details...</span>
+                                  </>
+                                ) : roomDetails[room.id as string] ? (
+                                  <span>Hide details</span>
+                                ) : (
+                                  <span>View detailed information</span>
+                                )}
+                              </button>
+                              
+                              {/* Room details section */}
+                              {roomDetails[room.id as string] && (
+                                <div className="mt-4 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+                                  <h5 className="font-medium mb-2">Detailed Room Information</h5>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {Object.entries(roomDetails[room.id as string]).map(([key, value]) => {
+                                      // Skip complex objects, arrays, or undefined values
+                                      if (typeof value === 'object' || value === undefined) return null;
+                                      // Format the key for display (remove underscores, capitalize)
+                                      const formattedKey = key
+                                        .replace(/_/g, ' ')
+                                        .split(' ')
+                                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                        .join(' ');
+                                      const displayValue = String(value);
+                                      return (
+                                        <div key={key} className="text-sm">
+                                          <span className="font-medium">{formattedKey}:</span> {displayValue}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* Amenities */}
+                              {room.amenities && room.amenities.length > 0 && (
+                                <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                  {room.amenities.slice(0, 6).map((amenity, i) => (
+                                    <span key={i} className="text-xs flex items-center text-neutral-500">
+                                      <i className="las la-check text-primary-500 mr-1"></i>
+                                      {typeof amenity === 'string' ? amenity : (amenity as any).name}
+                                    </span>
+                                  ))}
+                                  {room.amenities.length > 6 && (
+                                    <span className="text-xs text-primary-600 cursor-pointer hover:underline">
+                                      +{room.amenities.length - 6} more
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>

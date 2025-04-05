@@ -88,10 +88,8 @@ const SectionGridFeaturePlaces: FC<SectionGridFeaturePlacesProps> = ({
   
   const translatedTabs = useMemo(() => tabs || [
     "All",
-    mounted ? t('featuredPlaces.cities.newYork') : "New York", 
-    mounted ? t('featuredPlaces.cities.tokyo') : "Tokyo", 
-    mounted ? t('featuredPlaces.cities.paris') : "Paris", 
-    mounted ? t('featuredPlaces.cities.london') : "London"
+    mounted ? t('featuredPlaces.destinations.makkah.name') : "Makkah", 
+    mounted ? t('featuredPlaces.destinations.madina.name') : "Madinah"
   ], [tabs, mounted, t]);
   
   // Convert ReactNode heading and subHeading to strings for HeaderFilter
@@ -109,13 +107,9 @@ const SectionGridFeaturePlaces: FC<SectionGridFeaturePlacesProps> = ({
     if (tab === translatedTabs[0]) {
       setActiveCity("all");
     } else if (tab === translatedTabs[1]) {
-      setActiveCity("New York");
+      setActiveCity("Makkah");
     } else if (tab === translatedTabs[2]) {
-      setActiveCity("Tokyo");
-    } else if (tab === translatedTabs[3]) {
-      setActiveCity("Paris");
-    } else if (tab === translatedTabs[4]) {
-      setActiveCity("London");
+      setActiveCity("Madinah");
     }
   }, [translatedTabs]);
 
@@ -211,10 +205,8 @@ const SectionGridFeaturePlaces: FC<SectionGridFeaturePlacesProps> = ({
     >
       <HeaderFilter
         tabActive={activeCity === 'all' ? translatedTabs[0] : 
-                  activeCity === 'New York' ? translatedTabs[1] :
-                  activeCity === 'Tokyo' ? translatedTabs[2] :
-                  activeCity === 'Paris' ? translatedTabs[3] :
-                  activeCity === 'London' ? translatedTabs[4] : translatedTabs[0]}
+                  activeCity === 'Makkah' ? translatedTabs[1] :
+                  activeCity === 'Madinah' ? translatedTabs[2] : translatedTabs[0]}
         subHeading={subHeadingString}
         tabs={translatedTabs}
         heading={headingString}
