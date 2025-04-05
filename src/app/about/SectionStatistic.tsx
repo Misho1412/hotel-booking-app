@@ -1,3 +1,5 @@
+'use client';
+
 import React, { FC } from "react";
 import Heading from "@/shared/Heading";
 import useTranslation from "@/hooks/useTranslation";
