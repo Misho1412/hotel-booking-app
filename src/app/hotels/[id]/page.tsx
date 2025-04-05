@@ -301,6 +301,20 @@ export default function HotelPage({ params }: HotelPageProps) {
       return;
     }
 
+    // Check if a room has been selected
+    if (rooms.length === 0) {
+      toast.error("Please wait for rooms to load or try again later");
+      return;
+    }
+
+    // Get the first available room if no specific room is selected
+    // In a real implementation, you would want the user to explicitly select a room
+    const selectedRoom = rooms[0];
+    if (!selectedRoom || !selectedRoom.id) {
+      toast.error("No rooms available for this hotel. Please try another hotel.");
+      return;
+    }
+
     try {
       setIsBookingLoading(true);
       // Format dates for URL parameters
@@ -315,33 +329,35 @@ export default function HotelPage({ params }: HotelPageProps) {
 
       // Step 1: Create a pending reservation using the reservationService with the backend format
       const reservationData: ReservationBackendRequest = {
-        room_id: "1", // Empty for now, will be selected in checkout
+        room_id: selectedRoom.id.toString(), // Use the selected room ID instead of hardcoded "1"
         childs: "0", // Default to 0 children
         adults: guestCount.toString(),
         price_per_night: priceBreakdown.basePrice.toString(),
         payment_method: "credit_card", // Default payment method
         currency: "USD",
-        special_requests: "2",
+        special_requests: "",
         check_in_date: formatDateForBE(checkIn),
         check_out_date: formatDateForBE(checkOut),
-        notes: "test"
+        notes: "Reservation from hotel page"
       };
+      
+      console.log("Creating reservation with room ID:", selectedRoom.id);
       
       // Create reservation with pending payment status
       const reservation = await reservationService.createReservation(reservationData);
       console.log("Created pending reservation:", reservation.id);
       
       // Show success toast
-      alert("Reservation created successfully! Proceeding to checkout...");
+      toast.success("Reservation created successfully! Proceeding to checkout...");
 
       // Construct URL with reservation ID and other parameters
-      const url = `/${params.locale}/checkout/${hotel.id}?reservationId=${reservation.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guestCount}&nights=${stayDuration}&total=${priceBreakdown.total.toFixed(2)}`;
+      const url = `/${params.locale}/checkout/${hotel.id}?reservationId=${reservation.id}&roomId=${selectedRoom.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guestCount}&nights=${stayDuration}&total=${priceBreakdown.total.toFixed(2)}`;
       
       // Redirect to the payment page
       router.push(url as any);
     } catch (error) {
       console.error("Booking error:", error);
-      alert("Selected dates are not available. Please try again.");
+      toast.error("Failed to create reservation. Please try again.");
     } finally {
       setIsBookingLoading(false);
     }
