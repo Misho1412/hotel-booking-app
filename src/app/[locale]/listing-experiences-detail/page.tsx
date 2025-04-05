@@ -1,20 +1,18 @@
 "use client";
 
-import { FC } from "react";
-import dynamic from "next/dynamic";
+import React from "react";
+import { useParams } from "next/navigation";
 
-// Dynamically import the original listing-experiences-detail page component to prevent hydration errors
-const OriginalListingExperiencesDetailPage = dynamic(
-  () => import("@/app/(listing-detail)/listing-experiences-detail/page"),
-  { ssr: false }
-);
+export default function Page() {
+  const params = useParams();
 
-export interface PageProps {
-  params: { locale: string };
-}
-
-const ListingExperiencesDetailPage: FC<PageProps> = ({ params }) => {
-  return <OriginalListingExperiencesDetailPage />;
-};
-
-export default ListingExperiencesDetailPage; 
+  return (
+    <div className="container py-16">
+      <h2 className="text-3xl font-semibold mb-8">Experience Details</h2>
+      <p className="text-lg text-neutral-600">
+        This page is currently being localized for {params.locale}.
+        Please check back later for experience details in your language.
+      </p>
+    </div>
+  );
+} 

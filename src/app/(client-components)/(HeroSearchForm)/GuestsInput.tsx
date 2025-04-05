@@ -108,7 +108,15 @@ const GuestsInput: FC<GuestsInputProps> = ({
   const t = useTranslation('search');
   
   // Use try-catch to handle any translation errors
-  let guestsLabel, addGuestsLabel, searchLabel, adultsLabel, adultsDesc, childrenLabel, childrenDesc, infantsLabel, infantsDesc;
+  let guestsLabel: string,
+    addGuestsLabel: string,
+    searchLabel: string,
+    adultsLabel: string,
+    adultsDesc: string,
+    childrenLabel: string,
+    childrenDesc: string,
+    infantsLabel: string,
+    infantsDesc: string;
   try {
     guestsLabel = totalGuests ? t('guests') : '';
     addGuestsLabel = t('addGuests');

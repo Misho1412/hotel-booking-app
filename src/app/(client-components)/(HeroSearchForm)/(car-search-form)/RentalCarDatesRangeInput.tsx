@@ -9,6 +9,7 @@ import DatePickerCustomHeaderTwoMonth from "@/components/DatePickerCustomHeaderT
 import DatePickerCustomDay from "@/components/DatePickerCustomDay";
 import ClearDataButton from "../ClearDataButton";
 import ButtonSubmit from "../ButtonSubmit";
+import { PathName } from "@/routers/types";
 
 export interface RentalCarDatesRangeInputProps {
   className?: string;
@@ -86,7 +87,7 @@ const RentalCarDatesRangeInput: FC<RentalCarDatesRangeInputProps> = ({
               {/* BUTTON SUBMIT OF FORM */}
               {hasButtonSubmit && (
                 <div className="pr-2 xl:pr-4">
-                  <ButtonSubmit href="/listing-car-detail" />
+                  <ButtonSubmit href={"/listing-car-detail" as PathName} />
                 </div>
               )}
             </div>

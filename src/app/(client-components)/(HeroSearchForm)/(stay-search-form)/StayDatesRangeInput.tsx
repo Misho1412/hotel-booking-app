@@ -47,7 +47,7 @@ const StayDatesRangeInput: FC<StayDatesRangeInputProps> = ({
   const m = useTranslation('months');
   
   // Use try-catch to handle any translation errors
-  let addDatesLabel, checkinCheckoutLabel;
+  let addDatesLabel: string, checkinCheckoutLabel: string;
   try {
     addDatesLabel = mounted ? t('addDates') : 'Add dates';
     checkinCheckoutLabel = mounted ? t('checkin_checkout') : 'Check in - Check out';

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { FC, useState, useEffect, useCallback } from "react";
 import { StayDataType } from "@/data/types";
 import Pagination from "@/shared/Pagination";

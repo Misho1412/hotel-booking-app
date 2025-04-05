@@ -15,7 +15,6 @@ const ExperiencesSearchForm: FC<ExperiencesSearchFormProps> = ({}) => {
         <div className="self-center border-r border-slate-200 dark:border-slate-700 h-8"></div>
         <GuestsInput
           className="flex-1"
-          buttonSubmitHref="/listing-experiences"
         />
       </form>
     );

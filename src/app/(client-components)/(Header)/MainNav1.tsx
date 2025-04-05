@@ -15,6 +15,7 @@ import Link from "next/link";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import { getLocalizedUrl } from "@/utils/getLocalizedUrl";
 import { useParams } from "next/navigation";
+import { Route } from "@/routers/types";
 
 export interface MainNav1Props {
   className?: string;
@@ -68,7 +69,7 @@ const MainNav1: FC<MainNav1Props> = ({ className = "" }) => {
                 </button>
               </div>
             ) : (
-              <ButtonPrimary href={getLocalizedUrl("/login", locale)}>
+                <ButtonPrimary href={getLocalizedUrl("/login", locale) as Route<string>}>
                 {t('login') || 'Login'}
               </ButtonPrimary>
             )}

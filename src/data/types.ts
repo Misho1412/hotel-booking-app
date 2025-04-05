@@ -141,3 +141,11 @@ export interface CarDataType {
     lng: number;
   };
 }
+
+export interface CityType {
+  id: string;
+  name: string;
+  image: string;
+  count: number;
+  desc: string;
+}
