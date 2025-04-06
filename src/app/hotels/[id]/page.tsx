@@ -96,6 +96,30 @@ export default function HotelPage({ params }: HotelPageProps) {
   // Get room service hooks
   const { getRoomDetails } = useRooms();
 
+  // Add new state for dynamic pricing
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+
+  // Calculate price breakdown when inputs change
+  useEffect(() => {
+    if (!selectedRoom && rooms.length > 0) {
+      setSelectedRoom(rooms[0]); // Default to first room if none selected
+    }
+
+    if (selectedRoom) {
+      const basePrice = selectedRoom.defaultPrice || selectedRoom.roomType?.defaultPrice || 119;
+      const subtotal = basePrice * stayDuration;
+      const serviceCharge = subtotal * 0.1; // 10% service charge
+      const total = subtotal + serviceCharge;
+
+      setPriceBreakdown({
+        basePrice,
+        subtotal,
+        serviceCharge,
+        total
+      });
+    }
+  }, [selectedRoom, stayDuration, rooms]);
+
   // Check authentication status once on component mount
   useEffect(() => {
     // Only check auth once to prevent infinite loading
@@ -122,24 +146,6 @@ export default function HotelPage({ params }: HotelPageProps) {
 
     fetchHotelData();
   }, [id, fetchHotelById]);
-
-  // Calculate price breakdown when stay data changes
-  useEffect(() => {
-    if (!stayData || stayData.length === 0) return;
-    
-    const data = stayData[0];
-    const basePrice = parseFloat(String(data?.price || '0').replace(/[^0-9.]/g, '')) || 119;
-    const subtotal = basePrice * stayDuration;
-    const serviceCharge = subtotal * 0.1; // 10% service charge
-    const total = subtotal + serviceCharge;
-    
-    setPriceBreakdown({
-      basePrice,
-      subtotal,
-      serviceCharge,
-      total
-    });
-  }, [stayData, stayDuration, guestCount]);
 
   // Fetch rooms data - moved to top level
   useEffect(() => {
@@ -358,7 +364,7 @@ export default function HotelPage({ params }: HotelPageProps) {
     }
   };
 
-  // Add these helper functions to update dates and calculate duration
+  // Update handleDateChange to recalculate prices
   const handleDateChange = (startDate: Date, endDate: Date) => {
     setCheckInDate(startDate);
     setCheckOutDate(endDate);
@@ -602,8 +608,13 @@ export default function HotelPage({ params }: HotelPageProps) {
                                 <div className="mt-3">
                                   <ButtonPrimary 
                                     className="px-4 py-2 text-sm"
-                                    onClick={async () => {
-                                      // Existing booking click handler
+                                    onClick={() => {
+                                      setSelectedRoom(room);
+                                      if (isLoggedIn) {
+                                        handleBookNow();
+                                      } else {
+                                        router.push(`/${params.locale}/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+                                      }
                                     }}
                                   >
                                     {isLoggedIn ? "Book Now" : "Sign in to book"}

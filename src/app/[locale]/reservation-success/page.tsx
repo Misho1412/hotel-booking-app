@@ -38,9 +38,9 @@ export default function ReservationSuccessPage() {
                     >
                         Back to Home
                     </ButtonPrimary>
-                    <Link href="/my-bookings" className="w-full sm:w-auto">
+                    {/* <Link href="/my-bookings" className="w-full sm:w-auto">
                         <ButtonPrimary className="w-full">View My Bookings</ButtonPrimary>
-                    </Link>
+                    </Link> */}
                 </div>
             </div>
         </div>
