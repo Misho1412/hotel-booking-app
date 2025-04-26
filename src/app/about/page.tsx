@@ -1,3 +1,5 @@
+'use client';
+
 import rightImg from "@/images/about-hero-right.png";
 import React, { FC } from "react";
 import SectionFounder from "./SectionFounder";
@@ -21,7 +23,7 @@ const PageAbout: FC<PageAboutProps> = ({}) => {
           rightImg={rightImg}
           heading="👋 About Us."
           btnText=""
-          subHeading="We’re impartial and independent, and every day we create distinctive, world-class programmes and content which inform, educate and entertain millions of people in the around the world."
+          subHeading="We're impartial and independent, and every day we create distinctive, world-class programmes and content which inform, educate and entertain millions of people in the around the world."
         />
 
         <SectionFounder />

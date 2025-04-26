@@ -1,3 +1,5 @@
+'use client';
+
 import Heading from "@/shared/Heading";
 import Image from "next/image";
 import React from "react";
@@ -44,7 +46,7 @@ const FOUNDER_DEMO: People[] = [
 
 const SectionFounder = () => {
   const t = useTranslation('about');
-  const { pathname } = usePathname();
+  const pathname = usePathname();
   const isArabic = pathname?.startsWith('/ar');
   
   // Get translated team data

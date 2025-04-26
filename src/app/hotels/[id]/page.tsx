@@ -98,6 +98,30 @@ export default function HotelPage({ params }: HotelPageProps) {
   // Get room service hooks
   const { getRoomDetails } = useRooms();
 
+  // Add new state for dynamic pricing
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+
+  // Calculate price breakdown when inputs change
+  useEffect(() => {
+    if (!selectedRoom && rooms.length > 0) {
+      setSelectedRoom(rooms[0]); // Default to first room if none selected
+    }
+
+    if (selectedRoom) {
+      const basePrice = selectedRoom.defaultPrice || selectedRoom.roomType?.defaultPrice || 119;
+      const subtotal = basePrice * stayDuration;
+      const serviceCharge = subtotal * 0.1; // 10% service charge
+      const total = subtotal + serviceCharge;
+
+      setPriceBreakdown({
+        basePrice,
+        subtotal,
+        serviceCharge,
+        total
+      });
+    }
+  }, [selectedRoom, stayDuration, rooms]);
+
   // Check authentication status once on component mount
   useEffect(() => {
     // Only check auth once to prevent infinite loading
@@ -124,24 +148,6 @@ export default function HotelPage({ params }: HotelPageProps) {
 
     fetchHotelData();
   }, [id, fetchHotelById]);
-
-  // Calculate price breakdown when stay data changes
-  useEffect(() => {
-    if (!stayData || stayData.length === 0) return;
-    
-    const data = stayData[0];
-    const basePrice = parseFloat(String(data?.price || '0').replace(/[^0-9.]/g, '')) || 119;
-    const subtotal = basePrice * stayDuration;
-    const serviceCharge = subtotal * 0.1; // 10% service charge
-    const total = subtotal + serviceCharge;
-    
-    setPriceBreakdown({
-      basePrice,
-      subtotal,
-      serviceCharge,
-      total
-    });
-  }, [stayData, stayDuration, guestCount]);
 
   // Fetch rooms data - moved to top level
   useEffect(() => {
@@ -349,15 +355,10 @@ export default function HotelPage({ params }: HotelPageProps) {
       const reservation = await reservationService.createReservation(reservationData);
       console.log("Created pending reservation:", reservation.id);
       
-      // Show success toast
-      toast.success("Reservation created successfully! Proceeding to checkout...");
-
-      // Construct URL with reservation ID and other parameters
-      const url = `/${params.locale}/checkout/${hotel.id}?reservationId=${reservation.id}&roomId=${selectedRoom.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guestCount}&nights=${stayDuration}&total=${priceBreakdown.total.toFixed(2)}`;
-      
-      // Redirect to the payment page
-      router.push(url as any);
+      // Redirect to success page
+      router.push(`/${params.locale}/reservation-success?reservationId=${reservation.id}` as any);
     } catch (error) {
+      alert("Failed to create reservation. Please try again.");
       console.error("Booking error:", error);
       toast.error("Failed to create reservation. Please try again.");
     } finally {
@@ -365,7 +366,7 @@ export default function HotelPage({ params }: HotelPageProps) {
     }
   };
 
-  // Add these helper functions to update dates and calculate duration
+  // Update handleDateChange to recalculate prices
   const handleDateChange = (startDate: Date, endDate: Date) => {
     setCheckInDate(startDate);
     setCheckOutDate(endDate);
@@ -669,6 +670,7 @@ export default function HotelPage({ params }: HotelPageProps) {
                           </div>
                           
                           {/* Room details */}
+<<<<<<< HEAD
                           <div className="flex-1">
                             <h3 className="text-lg sm:text-xl font-medium mb-1">
                               {room.roomType ? room.roomType.name : room.name || `Room ${room.roomNumber || room.id || (index + 1)}`}
@@ -678,6 +680,40 @@ export default function HotelPage({ params }: HotelPageProps) {
                               <Badge name={`${room.capacity || 2} Guests`} />
                               {room.bedrooms && <Badge name={`${room.bedrooms} Bedroom${room.bedrooms > 1 ? 's' : ''}`} />}
                               {room.roomNumber && <Badge name={`Room ${room.roomNumber}`} />}
+=======
+                          <div className="flex-grow">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                              <div>
+                                <h4 className="text-lg font-semibold">
+                                  {room.name || room.roomType?.name || `Room ${room.roomNumber || index + 1}`}
+                                </h4>
+                                <p className="text-neutral-500 text-sm mt-1">
+                                  {room.capacity || room.roomType?.capacity || 2} Guests • {room.bedrooms || 1} Bedroom
+                                </p>
+                              </div>
+                              
+                              <div className="text-right mt-3 sm:mt-0">
+                                <div className="text-xl font-semibold text-primary-600">
+                                  ${room.defaultPrice || room.roomType?.defaultPrice || 119}
+                                  <span className="text-sm text-neutral-500 font-normal">/night</span>
+                                </div>
+                                <div className="mt-3">
+                                  <ButtonPrimary 
+                                    className="px-4 py-2 text-sm"
+                                    onClick={() => {
+                                      setSelectedRoom(room);
+                                      if (isLoggedIn) {
+                                        handleBookNow();
+                                      } else {
+                                        router.push(`/${params.locale}/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+                                      }
+                                    }}
+                                  >
+                                    {isLoggedIn ? "Book Now" : "Sign in to book"}
+                                  </ButtonPrimary>
+                                </div>
+                              </div>
+>>>>>>> da359c771e073ce38a8f4004a35f618bd30f1b0e
                             </div>
                             
                             <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-3">
