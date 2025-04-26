@@ -1,20 +1,12 @@
 import React from "react";
 import SectionHero from "@/app/(server-components)/SectionHero";
-import BgGlassmorphism from "@/components/BgGlassmorphism";
-import { TaxonomyType } from "@/data/types";
-import SectionOurFeatures from "@/components/SectionOurFeatures";
-import BackgroundSection from "@/components/BackgroundSection";
+import { getTranslations } from 'next-intl/server';
+import HotelsInYourArea from "@/components/HotelsInYourArea";
 import SectionHowItWork from "@/components/SectionHowItWork";
 import SectionSubscribe2 from "@/components/SectionSubscribe2";
 import SectionVideos from "@/components/SectionVideos";
 import SectionBecomeAnAuthor from "@/components/SectionBecomeAnAuthor";
-import { getTranslations } from 'next-intl/server';
-import SectionHeroArchivePage from "@/app/(server-components)/SectionHeroArchivePage";
-import SectionGridFilterCard from "@/components/SectionGridFilterCard";
-import { DEMO_STAY_LISTINGS } from "@/data/listings";
-import SectionHero2ArchivePage from "@/app/(server-components)/SectionHero2ArchivePage";
-import { DestinationPins } from "@/components/ui/DestinationPins";
-import SectionGridFeaturePlaces from "@/components/SectionGridFeaturePlaces";
+import BackgroundSection from "@/components/BackgroundSection";
 
 interface Props {
   params: { locale: string }
@@ -26,32 +18,46 @@ export default async function PageHome({ params: { locale } }: Props) {
 
   return (
     <main className="nc-PageHome relative overflow-hidden">
-      {/* GLASSMOPHIN */}
-      <BgGlassmorphism />
-
-      <div className="container relative space-y-24 mb-24 lg:space-y-28 lg:mb-28">
-        {/* SECTION HERO */}
-        
-        <SectionHero className="pt-10 lg:pt-16 lg:pb-16" />
-        <div data-aos="fade-up" data-aos-duration="1000">
-          <DestinationPins />
-        </div>
-        <SectionOurFeatures />
-        <SectionGridFeaturePlaces />
-        {/* FEATURED PLACES */}
-
-
-        <SectionHowItWork />
-
-        <SectionSubscribe2 />
-
-        <SectionVideos />
-
-        <div className="relative py-16">
-          <BackgroundSection />
-          <SectionBecomeAnAuthor />
-        </div>
+      {/* Full-page background image with overlay */}
+      <div className="fixed inset-0 z-0">
+        <img 
+          src="/images/back.jpg" 
+          alt="Islamic Background" 
+          className="absolute inset-0 w-full h-full object-cover" 
+        />
+        <div className="absolute inset-0 bg-black bg-opacity-50" />
       </div>
+
+      {/* Header is positioned fixed at the top */}
+      
+      {/* Main content */}
+      <div className="relative z-10">
+        {/* Hero section taking up most of the viewport */}
+        <div className="min-h-screen">
+          <SectionHero className="pt-36 lg:pt-48" />
+        </div>
+        
+        {/* Rest of content with white background cards */}
+  <div className="bg-white/100 dark:bg-neutral-900/80 backdrop-blur-sm p-3 shadow-xl h-[700px] z-20">
+    <HotelsInYourArea />
+  </div>
+  
+  <div className="bg-[#252525] backdrop-blur-sm p-5 shadow-xl"> {/* Added margin-top */}
+    <SectionHowItWork />
+  </div>
+</div>
+          <div className="bg-white/100 dark:bg-neutral-900/80 backdrop-blur-sm p-5  shadow-xl">
+            <SectionSubscribe2 />
+          </div>
+
+          <div className="bg-white/100 dark:bg-neutral-900/80 backdrop-blur-sm p-5  shadow-xl">
+            <SectionVideos />
+          </div>
+
+          <div className="relative py-16 bg-white/100 dark:bg-neutral-900/80 backdrop-blur-sm p-5  shadow-xl">
+            <BackgroundSection />
+            <SectionBecomeAnAuthor />
+          </div>
     </main>
   );
 } 

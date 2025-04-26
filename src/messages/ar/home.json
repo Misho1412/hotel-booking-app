@@ -47,6 +47,12 @@
   "featuredPlaces": {
     "title": "أماكن مميزة للإقامة",
     "subtitle": "أماكن شعبية للإقامة توصي بها لك",
+    "viewAll": "عرض جميع الفنادق",
+    "bedroom": "غرفة نوم",
+    "bedrooms": "غرف نوم",
+    "area": "المساحة",
+    "view": "عرض",
+    "reviews": "تقييمات",
     "cities": {
       "newYork": "نيويورك",
       "tokyo": "طوكيو",

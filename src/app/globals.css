@@ -2,16 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 255, 255, 255;
+@layer base {
+  :root {
+    --foreground-rgb: 0, 0, 0;
+    --background-start-rgb: 214, 219, 220;
+    --background-end-rgb: 255, 255, 255;
+    
+    /* Custom CSS Variables for Search Form */
+    --nero: rgba(37, 37, 37, 1);
+    --variable-collection-accent: rgba(204, 204, 204, 1);
+    --variable-collection-primery: rgba(37, 37, 37, 1);
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --foreground-rgb: 255, 255, 255;
+      --background-start-rgb: 0, 0, 0;
+      --background-end-rgb: 0, 0, 0;
+    }
+  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-rgb: 0, 0, 0;
-  }
+/* Import custom fonts */
+@font-face {
+  font-family: 'Abhaya Libre';
+  src: url('/fonts/AbhayaLibre-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ABeeZee';
+  src: url('/fonts/ABeeZee-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
 body {
@@ -39,3 +65,40 @@ html[dir="rtl"] .ml-1 { margin-left: 0 !important; margin-right: 0.25rem !import
 html[dir="rtl"] .ml-2 { margin-left: 0 !important; margin-right: 0.5rem !important; }
 html[dir="rtl"] .ml-3 { margin-left: 0 !important; margin-right: 0.75rem !important; }
 html[dir="rtl"] .ml-4 { margin-left: 0 !important; margin-right: 1rem !important; }
+
+/* Custom header styling */
+.nc-Header {
+  background-color: transparent;
+}
+
+/* Add shadow to Pixel.com logo */
+.nc-Header h1, .nc-Header span {
+  text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* For mobile menu icon color */
+.nc-Header .mobile-menu-icon {
+  color: #333;
+}
+
+/* Fix for links and dropdowns in the navigation */
+.nc-Header .menu-item a {
+  font-weight: 500;
+}
+
+.nc-Header .menu-item a:hover {
+  color: #555;
+}
+
+/* SVG Background styles */
+.nc-Header svg {
+  filter: drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.1));
+}
+
+@layer components {
+  .nc-container {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8 xl:max-w-screen-xl 2xl:px-0;
+  }
+  
+  /* Add additional component styles here */
+}

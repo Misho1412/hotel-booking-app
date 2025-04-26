@@ -66,6 +66,8 @@ export default function HotelPage({ params }: HotelPageProps) {
   const [isGuestPickerOpen, setIsGuestPickerOpen] = useState(false);
   const [isBookingLoading, setIsBookingLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [stayDuration, setStayDuration] = useState(3); // Default to 3 nights
   const [guestCount, setGuestCount] = useState(4); // Default to 4 guests
   const today = new Date();
@@ -387,44 +389,118 @@ export default function HotelPage({ params }: HotelPageProps) {
 
       {/* SINGLE HEADER */}
       <header className="container 2xl:px-14 rounded-md sm:rounded-xl mt-10">
-        <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="md:col-span-1 lg:col-span-2 h-[300px] md:h-[400px]">
-            <div className="relative h-full w-full">
-              {data.galleryImgs && data.galleryImgs[0] ? (
-                typeof data.galleryImgs[0] === 'string' ? (
-                  <img src={data.galleryImgs[0]} alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
+        <div className="relative grid grid-cols-1 md:grid-cols-3 gap-2">
+          {/* Main large image on the left */}
+          <div 
+            className="md:col-span-2 h-[400px] md:h-[500px] relative rounded-l-xl overflow-hidden cursor-pointer"
+            onClick={() => {
+              setActivePhotoIndex(0);
+              setIsGalleryOpen(true);
+            }}
+          >
+            {data.galleryImgs && data.galleryImgs[0] ? (
+              <img 
+                src={typeof data.galleryImgs[0] === 'string' ? data.galleryImgs[0] : data.galleryImgs[0].toString()} 
+                alt={hotel.name} 
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : (
+              <img src="/placeholder.jpg" alt="Featured" className="absolute inset-0 object-cover h-full w-full" />
+            )}
+          </div>
+          
+          {/* Grid of smaller images on the right */}
+          <div className="hidden md:grid md:grid-rows-2 gap-2">
+            {/* Top row images */}
+            <div className="grid grid-cols-2 gap-2">
+              <div 
+                className="relative h-[245px] rounded-tr-xl overflow-hidden cursor-pointer"
+                onClick={() => {
+                  setActivePhotoIndex(1);
+                  setIsGalleryOpen(true);
+                }}
+              >
+                {data.galleryImgs && data.galleryImgs[1] ? (
+                  <img 
+                    src={typeof data.galleryImgs[1] === 'string' ? data.galleryImgs[1] : data.galleryImgs[1].toString()} 
+                    alt={`${hotel.name} image 2`} 
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
                 ) : (
-                  <img src={data.galleryImgs[0].toString()} alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
-                )
-              ) : (
-                <img src="/placeholder.jpg" alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
-              )}
+                  <img src="/placeholder.jpg" alt="Image 2" className="absolute inset-0 object-cover h-full w-full" />
+                )}
+              </div>
+              <div 
+                className="relative h-[245px] overflow-hidden cursor-pointer"
+                onClick={() => {
+                  setActivePhotoIndex(2);
+                  setIsGalleryOpen(true);
+                }}
+              >
+                {data.galleryImgs && data.galleryImgs[2] ? (
+                  <img 
+                    src={typeof data.galleryImgs[2] === 'string' ? data.galleryImgs[2] : data.galleryImgs[2].toString()} 
+                    alt={`${hotel.name} image 3`} 
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : (
+                  <img src="/placeholder.jpg" alt="Image 3" className="absolute inset-0 object-cover h-full w-full" />
+                )}
+              </div>
+            </div>
+            
+            {/* Bottom row images */}
+            <div className="grid grid-cols-2 gap-2">
+              <div 
+                className="relative h-[245px] overflow-hidden cursor-pointer"
+                onClick={() => {
+                  setActivePhotoIndex(3);
+                  setIsGalleryOpen(true);
+                }}
+              >
+                {data.galleryImgs && data.galleryImgs[3] ? (
+                  <img 
+                    src={typeof data.galleryImgs[3] === 'string' ? data.galleryImgs[3] : data.galleryImgs[3].toString()} 
+                    alt={`${hotel.name} image 4`} 
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : (
+                  <img src="/placeholder.jpg" alt="Image 4" className="absolute inset-0 object-cover h-full w-full" />
+                )}
+              </div>
+              <div 
+                className="relative h-[245px] rounded-br-xl overflow-hidden cursor-pointer"
+                onClick={() => {
+                  setActivePhotoIndex(4);
+                  setIsGalleryOpen(true);
+                }}
+              >
+                {data.galleryImgs && data.galleryImgs[4] ? (
+                  <img 
+                    src={typeof data.galleryImgs[4] === 'string' ? data.galleryImgs[4] : data.galleryImgs[4].toString()} 
+                    alt={`${hotel.name} image 5`} 
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : (
+                  <img src="/placeholder.jpg" alt="Image 5" className="absolute inset-0 object-cover h-full w-full" />
+                )}
+              </div>
             </div>
           </div>
-          <div className="hidden md:grid md:col-span-1 grid-rows-2 gap-4">
-            <div className="relative h-[190px]">
-              {data.galleryImgs && data.galleryImgs[1] ? (
-                typeof data.galleryImgs[1] === 'string' ? (
-                  <img src={data.galleryImgs[1]} alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
-                ) : (
-                  <img src={data.galleryImgs[1].toString()} alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
-                )
-              ) : (
-                <img src="/placeholder.jpg" alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
-              )}
-            </div>
-            <div className="relative h-[190px]">
-              {data.galleryImgs && data.galleryImgs[2] ? (
-                typeof data.galleryImgs[2] === 'string' ? (
-                  <img src={data.galleryImgs[2]} alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
-                ) : (
-                  <img src={data.galleryImgs[2].toString()} alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
-                )
-              ) : (
-                <img src="/placeholder.jpg" alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
-              )}
-            </div>
-          </div>
+
+          {/* Show all photos button */}
+          <button 
+            onClick={() => {
+              setIsGalleryOpen(true);
+              setActivePhotoIndex(0);
+            }}
+            className="absolute bottom-4 left-4 py-2 px-4 bg-white dark:bg-neutral-900 text-sm rounded-full shadow-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h7" />
+            </svg>
+            Show all photos
+          </button>
         </div>
       </header>
 
@@ -572,116 +648,85 @@ export default function HotelPage({ params }: HotelPageProps) {
                           {/* Room image */}
                           <div className="relative w-full sm:w-40 h-32 mb-4 sm:mb-0 sm:mr-6 rounded-lg overflow-hidden">
                             {room.images && room.images.length > 0 ? (
-                              <img 
-                                src={typeof room.images[0] === 'string' ? room.images[0] : 
-                                  (room.images[0] as any)?.image || '/placeholder.jpg'} 
-                                alt={room.name || 'Room'} 
-                                className="absolute inset-0 w-full h-full object-cover"
+                              <GallerySlider
+                                uniqueID={`room-${room.id}-${index}`}
+                                galleryImgs={room.images.map((img: any) => 
+                                  typeof img === 'string' ? img : (img && img.image) || ''
+                                ).filter(Boolean)}
+                                ratioClass="aspect-w-4 aspect-h-3"
+                                imageClass="object-cover"
+                                galleryClass="rounded-lg h-full"
+                                href={`#room-${room.id}`}
+                                navigation={true}
                               />
                             ) : (
                               <img 
                                 src="/placeholder.jpg" 
-                                alt="Room placeholder" 
+                                alt={room.name || 'Room'} 
                                 className="absolute inset-0 w-full h-full object-cover"
                               />
                             )}
                           </div>
                           
                           {/* Room details */}
-                          <div className="flex-grow">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                              <div>
-                                <h4 className="text-lg font-semibold">
-                                  {room.name || room.roomType?.name || `Room ${room.roomNumber || index + 1}`}
-                                </h4>
-                                <p className="text-neutral-500 text-sm mt-1">
-                                  {room.capacity || room.roomType?.capacity || 2} Guests • {room.bedrooms || 1} Bedroom
-                                </p>
-                              </div>
-                              
-                              <div className="text-right mt-3 sm:mt-0">
-                                <div className="text-xl font-semibold text-primary-600">
-                                  ${room.defaultPrice || room.roomType?.defaultPrice || 119}
-                                  <span className="text-sm text-neutral-500 font-normal">/night</span>
-                                </div>
-                                <div className="mt-3">
-                                  <ButtonPrimary 
-                                    className="px-4 py-2 text-sm"
-                                    onClick={async () => {
-                                      // Existing booking click handler
-                                    }}
-                                  >
-                                    {isLoggedIn ? "Book Now" : "Sign in to book"}
-                                  </ButtonPrimary>
-                                </div>
-                              </div>
+                          <div className="flex-1">
+                            <h3 className="text-lg sm:text-xl font-medium mb-1">
+                              {room.roomType ? room.roomType.name : room.name || `Room ${room.roomNumber || room.id || (index + 1)}`}
+                            </h3>
+                            
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              <Badge name={`${room.capacity || 2} Guests`} />
+                              {room.bedrooms && <Badge name={`${room.bedrooms} Bedroom${room.bedrooms > 1 ? 's' : ''}`} />}
+                              {room.roomNumber && <Badge name={`Room ${room.roomNumber}`} />}
                             </div>
                             
-                            {/* Room description and amenities */}
-                            <div className="mt-4">
-                              <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                                {room.description || room.roomType?.description || "Comfortable room with all amenities"}
-                              </p>
+                            <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-3">
+                              {room.description || room.roomType?.description || 'Comfortable room with all essential amenities for a pleasant stay.'}
+                            </p>
+                            
+                            {/* Room amenities */}
+                            {room.amenities && room.amenities.length > 0 && (
+                              <div className="mb-4">
+                                <h4 className="text-sm font-medium mb-2">Room Amenities:</h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {room.amenities.map((amenity: any, idx: number) => {
+                                    const name = typeof amenity === 'string' ? amenity : 
+                                          (amenity && typeof amenity === 'object' && amenity.name) ? amenity.name : 
+                                          (amenity && typeof amenity === 'object' && amenity.amenity_name) ? amenity.amenity_name : '';
+                                    
+                                    return name ? (
+                                      <span key={idx} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
+                                        {name}
+                                      </span>
+                                    ) : null;
+                                  }).filter(Boolean)}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Price and book button */}
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4">
+                              <div className="mb-3 sm:mb-0">
+                                <span className="text-xl font-semibold text-secondary-500">
+                                  ${room.defaultPrice || (room.roomType && room.roomType.defaultPrice) || priceBreakdown.basePrice}
+                                </span>
+                                <span className="text-sm text-neutral-500 dark:text-neutral-400"> / night</span>
+                              </div>
                               
-                              {/* Button to load room details */}
-                              <button 
-                                onClick={() => fetchRoomDetails(room.id as string)}
-                                className="text-sm text-primary-600 hover:underline mt-2 flex items-center"
-                                disabled={loadingRoomDetails[room.id as string]}
+                              <ButtonPrimary
+                                onClick={() => handleBookNow()}
+                                disabled={isBookingLoading}
+                                className="sm:w-auto w-full"
                               >
-                                {loadingRoomDetails[room.id as string] ? (
+                                {isBookingLoading ? (
                                   <>
                                     <Spinner size="sm" className="mr-2" />
-                                    <span>Loading details...</span>
+                                    Processing...
                                   </>
-                                ) : roomDetails[room.id as string] ? (
-                                  <span>Hide details</span>
                                 ) : (
-                                  <span>View detailed information</span>
+                                  'Reserve'
                                 )}
-                              </button>
-                              
-                              {/* Room details section */}
-                              {roomDetails[room.id as string] && (
-                                <div className="mt-4 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
-                                  <h5 className="font-medium mb-2">Detailed Room Information</h5>
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {Object.entries(roomDetails[room.id as string]).map(([key, value]) => {
-                                      // Skip complex objects, arrays, or undefined values
-                                      if (typeof value === 'object' || value === undefined) return null;
-                                      // Format the key for display (remove underscores, capitalize)
-                                      const formattedKey = key
-                                        .replace(/_/g, ' ')
-                                        .split(' ')
-                                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                                        .join(' ');
-                                      const displayValue = String(value);
-                                      return (
-                                        <div key={key} className="text-sm">
-                                          <span className="font-medium">{formattedKey}:</span> {displayValue}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              )}
-                              
-                              {/* Amenities */}
-                              {room.amenities && room.amenities.length > 0 && (
-                                <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                  {room.amenities.slice(0, 6).map((amenity, i) => (
-                                    <span key={i} className="text-xs flex items-center text-neutral-500">
-                                      <i className="las la-check text-primary-500 mr-1"></i>
-                                      {typeof amenity === 'string' ? amenity : (amenity as any).name}
-                                    </span>
-                                  ))}
-                                  {room.amenities.length > 6 && (
-                                    <span className="text-xs text-primary-600 cursor-pointer hover:underline">
-                                      +{room.amenities.length - 6} more
-                                    </span>
-                                  )}
-                                </div>
-                              )}
+                              </ButtonPrimary>
                             </div>
                           </div>
                         </div>
@@ -949,6 +994,112 @@ export default function HotelPage({ params }: HotelPageProps) {
                     >
                       Apply
                     </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+      
+      {/* PHOTO GALLERY MODAL */}
+      <Transition appear show={isGalleryOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={() => setIsGalleryOpen(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-90" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-hidden">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full h-full transform overflow-hidden text-left flex flex-col justify-between">
+                  {/* Header with close button */}
+                  <div className="fixed top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/70 to-transparent p-4 flex justify-between items-center">
+                    <h3 className="text-lg text-white font-medium">
+                      {hotel.name} - {activePhotoIndex + 1}/{data.galleryImgs?.length || 0} Photos
+                    </h3>
+                    <button
+                      onClick={() => setIsGalleryOpen(false)}
+                      className="text-white p-1 rounded-full bg-black/30 hover:bg-black/50 transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {/* Main image container */}
+                  <div className="flex-1 flex items-center justify-center h-full">
+                    {data.galleryImgs && data.galleryImgs[activePhotoIndex] && (
+                      <img 
+                        src={typeof data.galleryImgs[activePhotoIndex] === 'string' 
+                          ? data.galleryImgs[activePhotoIndex] 
+                          : data.galleryImgs[activePhotoIndex].toString()
+                        } 
+                        alt={`${hotel.name} photo ${activePhotoIndex + 1}`} 
+                        className="max-h-[85vh] max-w-full object-contain"
+                      />
+                    )}
+                  </div>
+                  
+                  {/* Navigation arrows */}
+                  {activePhotoIndex > 0 && (
+                    <button 
+                      onClick={() => setActivePhotoIndex(prev => prev - 1)}
+                      className="absolute left-4 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-black/30 hover:bg-black/50 transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                  )}
+                  
+                  {data.galleryImgs && activePhotoIndex < data.galleryImgs.length - 1 && (
+                    <button 
+                      onClick={() => setActivePhotoIndex(prev => prev + 1)}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-black/30 hover:bg-black/50 transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  )}
+                  
+                  {/* Thumbnail navigation */}
+                  <div className="fixed bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/70 to-transparent p-4">
+                    <div className="flex overflow-x-auto space-x-2 pb-2 px-4">
+                      {data.galleryImgs && data.galleryImgs.map((img, idx) => (
+                        <button 
+                          key={idx} 
+                          onClick={() => setActivePhotoIndex(idx)}
+                          className={`flex-shrink-0 h-16 w-24 rounded-md overflow-hidden border-2 transition-all ${
+                            idx === activePhotoIndex ? 'border-white opacity-100 scale-105' : 'border-transparent opacity-70 hover:opacity-100'
+                          }`}
+                        >
+                          <img 
+                            src={typeof img === 'string' ? img : img.toString()} 
+                            alt={`Thumbnail ${idx + 1}`} 
+                            className="h-full w-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </Dialog.Panel>
               </Transition.Child>

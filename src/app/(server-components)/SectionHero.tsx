@@ -1,14 +1,10 @@
 "use client";
 
 import React, { FC, useEffect, useState } from "react";
-import imagePng from "@/images/hero-right.png";
 import HeroSearchForm from "../(client-components)/(HeroSearchForm)/HeroSearchForm";
-import Image from "next/image";
 import ButtonPrimary from "@/shared/ButtonPrimary";
 import useTranslation from "@/hooks/useTranslation";
-import { getLocalizedUrl } from "@/utils/getLocalizedUrl";
 import { useParams } from "next/navigation";
-import { Route } from "next";
 
 export interface SectionHeroProps {
   className?: string;
@@ -18,59 +14,43 @@ const SectionHero: FC<SectionHeroProps> = ({ className = "" }) => {
   const t = useTranslation('home');
   const [mounted, setMounted] = useState(false);
   const params = useParams();
-  const locale = params?.locale as string;
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   return (
-    <div
-      className={`nc-SectionHero flex flex-col-reverse lg:flex-col relative ${className}`}
-    >
-      <div className="flex flex-col lg:flex-row lg:items-center">
-        <div 
-          className="flex-shrink-0 lg:w-1/2 flex flex-col items-start space-y-8 sm:space-y-10 pb-14 lg:pb-64 xl:pr-14 lg:mr-10 xl:mr-0"
-          data-aos="fade-right"
-          data-aos-delay="200"
-          data-aos-duration="800"
-        >
-          <h2 className="font-medium text-4xl md:text-5xl xl:text-7xl !leading-[114%] ">
-            {t('hero.title')}
+    <div className={`nc-SectionHero relative pt-10 pb-24 ${className}`}>
+      {/* Main hero text */}
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col items-start max-w-4xl">
+          <h2 
+            className="font-normal text-5xl md:text-7xl xl:text-[80px] leading-tight text-white"
+            style={{
+              background: 'linear-gradient(90deg, rgba(255, 255, 255, 1) 0%, rgba(204, 204, 204, 1) 77%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              textShadow: '0px 4px 5px rgba(0, 0, 0, 0.3)'
+            }}
+          >
+            Explore your place<br />to stay
           </h2>
-          <span 
-            className="text-base md:text-lg text-neutral-500 dark:text-neutral-400"
-            data-aos="fade-up"
-            data-aos-delay="400"
-          >
-            {t('hero.subtitle')}
-          </span>
-          <ButtonPrimary 
-            href={getLocalizedUrl("/listing-stay-map", locale) as Route}
-            sizeClass="px-5 py-4 sm:px-7"
-            data-aos="fade-up"
-            data-aos-delay="600"
-          >
-            {t('hero.search')}
-          </ButtonPrimary>
-        </div>
-        <div 
-          className="flex-grow"
-          data-aos="fade-left"
-          data-aos-delay="300"
-          data-aos-duration="1000"
-        >
-          <Image className="w-half" src={imagePng} alt="hero" priority />
+          
+          <div className="mt-10 md:mt-20 w-full">
+            <HeroSearchForm />
+          </div>
         </div>
       </div>
-
-      <div 
-        className="hidden lg:block z-10 mb-12 lg:mb-0 lg:-mt-40 w-full"
-        data-aos="fade-up"
-        data-aos-delay="500"
-        data-aos-duration="1000"
-      >
-        <HeroSearchForm />
+      
+      {/* Text on the right - smaller version */}
+      <div className="hidden lg:block absolute right-3 bottom-1 , max-w-[200px]">
+        <div className="relative pl-6">
+          {/* Vertical line - thinner */}
+          <div className="absolute left-0 top-2 bottom-2 w-px bg-white"></div>
+          <p className="text-white text-xl font-bold leading-snug">{t('hero.subtitle')}</p>
+          <p className="text-white text-base mt-2">{t('hero.subTitle')}</p>
+        </div>
       </div>
     </div>
   );

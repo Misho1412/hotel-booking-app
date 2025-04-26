@@ -14,5 +14,8 @@
   "where_are_you_going": "إلى أين أنت ذاهب؟",
   "addDates": "أضف تواريخ",
   "checkin_checkout": "تسجيل الدخول - تسجيل الخروج",
-  "nights": "ليالٍ"
+  "nights": "ليالٍ",
+  "checkIn": "تسجيل الدخول",
+  "checkOut": "تسجيل الخروج",
+  "selectDates": "اختر التواريخ"
 } 

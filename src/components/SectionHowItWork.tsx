@@ -62,9 +62,7 @@ const SectionHowItWork: FC<SectionHowItWorkProps> = ({
       data-aos="fade-up"
       data-aos-duration="1000"
     >
-      <Heading isCenter desc={t('howItWorks.subtitle')}>
-        {t('howItWorks.title')}
-      </Heading>
+
       <div className="mt-20 relative grid md:grid-cols-3 gap-20">
         <Image
           className="hidden md:block absolute inset-x-0 top-10"

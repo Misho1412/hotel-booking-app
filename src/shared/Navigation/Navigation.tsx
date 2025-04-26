@@ -10,11 +10,15 @@ interface NavigationProps {
 
 const Navigation: FC<NavigationProps> = ({ className = "" }) => {
   return (
-    <ul className={`nc-Navigation hidden lg:flex lg:flex-wrap lg:space-x-1 relative ${className}`}>
-      {NAVIGATION_DEMO.map((item) => (
-        <NavigationItem key={item.id} menuItem={item} />
-      ))}
-    </ul>
+    <nav className={`nc-Navigation ${className}`}>
+      <ul className="flex items-center space-x-8 lg:space-x-10">
+        {NAVIGATION_DEMO.map((item) => (
+          <li key={item.id} className="menu-item">
+            <NavigationItem menuItem={item} />
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 }
 

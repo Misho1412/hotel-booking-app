@@ -256,7 +256,6 @@ const NavigationItem: FC<NavigationItemWithRouterProps> = ({ menuItem }) => {
   const renderMainItem = (item: NavItemType) => {
     const t = useTranslation('header');
     
-    // Use translations from the header namespace for About and Contact
     let displayName = item.name;
     
     if (item.translationKey) {
@@ -274,7 +273,7 @@ const NavigationItem: FC<NavigationItemWithRouterProps> = ({ menuItem }) => {
     
     return (
       <Link
-        className="inline-flex items-center text-sm xl:text-base font-normal text-neutral-700 dark:text-neutral-300 py-2 px-4 xl:px-5 rounded-full hover:text-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+        className="inline-flex items-center text-base font-medium text-neutral-800 dark:text-white hover:text-neutral-600 dark:hover:text-neutral-300 py-2 px-4 transition-colors"
         href={{
           pathname: item.href || undefined,
         }}
@@ -284,7 +283,7 @@ const NavigationItem: FC<NavigationItemWithRouterProps> = ({ menuItem }) => {
         {displayName}
         {item.type && (
           <ChevronDownIcon
-            className="ml-1 -mr-1 h-4 w-4 text-neutral-400"
+            className="ml-1 -mr-1 h-4 w-4 text-neutral-500"
             aria-hidden="true"
           />
         )}

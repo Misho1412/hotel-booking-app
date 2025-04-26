@@ -12,7 +12,9 @@ const BgGlassmorphism: FC<BgGlassmorphismProps> = ({
       className={`nc-BgGlassmorphism ${className}`}
       data-nc-id="BgGlassmorphism"
     >
-      {/* Removed colored spans for solid background */}
+      {/* Reduced opacity for better compatibility with background image */}
+      <span className="hidden sm:block absolute bg-[#ef233c] opacity-10 bottom-0 left-1/4 transform -translate-x-1/2 w-80 h-80 rounded-full filter blur-3xl" />
+      <span className="hidden sm:block absolute bg-primary-500 opacity-10 top-0 right-1/3 transform translate-x-1/2 w-80 h-80 rounded-full filter blur-3xl" />
     </div>
   );
 };

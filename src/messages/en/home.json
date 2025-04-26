@@ -47,6 +47,12 @@
   "featuredPlaces": {
     "title": "Featured Places to Stay",
     "subtitle": "Popular places to stay that we recommend for you",
+    "viewAll": "View All Hotels",
+    "bedroom": "Bedroom",
+    "bedrooms": "Bedrooms",
+    "area": "Area",
+    "view": "View",
+    "reviews": "reviews",
     "destinations": {
       "makkah": {
         "title": "Spiritual Stay in Makkah",

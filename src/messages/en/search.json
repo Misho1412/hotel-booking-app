@@ -14,5 +14,8 @@
   "where_are_you_going": "Where are you going?",
   "addDates": "Add dates",
   "checkin_checkout": "Check-in - Check-out",
-  "nights": "nights"
+  "nights": "nights",
+  "checkIn": "Check in",
+  "checkOut": "Checkout",
+  "selectDates": "Select dates"
 } 
