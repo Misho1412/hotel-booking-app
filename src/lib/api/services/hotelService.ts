@@ -641,6 +641,62 @@ class HotelService {
       throw new Error(`Failed to retrieve your reservations: ${error.message}`);
     }
   }
+
+  /**
+   * Get amenities for a specific hotel
+   * @param hotelId - The ID of the hotel
+   * @returns Promise with hotel amenities
+   */
+  async getHotelAmenities(hotelId: string): Promise<any[]> {
+    try {
+      console.log(`Fetching amenities for hotel ID: ${hotelId}`);
+      
+      // Get token for authentication
+      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+      
+      // Create headers with token if available
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Token ${token}`;
+      }
+      
+      // Construct the URL - try hotel amenities endpoint
+      const response = await apiClient.get(`/hotels-public/${hotelId}/amenities/`, { 
+        headers
+      });
+      
+      console.log(`Hotel amenities API response status: ${response.status}`);
+      
+      // Return the data (could be array or object with results)
+      return Array.isArray(response.data) ? response.data : 
+             (response.data && response.data.results ? response.data.results : []);
+    } catch (error: any) {
+      // If first endpoint failed, fallback to the hotel details and extract amenities
+      try {
+        console.log(`Falling back to hotel details to extract amenities`);
+        const hotelResponse = await apiClient.get(`/hotels-public/${hotelId}/`, { 
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (hotelResponse.data && hotelResponse.data.amenities) {
+          return hotelResponse.data.amenities;
+        }
+      } catch (fallbackError) {
+        console.error('Fallback hotel amenities fetch failed:', fallbackError);
+      }
+      
+      console.error('Get hotel amenities error:', error);
+      // Return empty array instead of throwing to make UI more resilient
+      return [];
+    }
+  }
 }
 
 // Export a singleton instance
