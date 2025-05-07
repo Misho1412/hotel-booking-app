@@ -434,7 +434,7 @@ export default function HotelPage({ params }: HotelPageProps) {
       room_type_id: roomOption.room_type_id,
       room_view_id: roomOption.room_view_id,
       num_rooms: "1",
-      meal_plan_counts: mealPlanCounts,
+      meal_plan_counts: {}, // keep empty for now TODO: fix later
       from_date: fromDate,
       to_date: toDate,
       adults: guestCount.toString(),
@@ -846,6 +846,50 @@ export default function HotelPage({ params }: HotelPageProps) {
   return (
     <div className="nc-ListingStayDetailPage relative">
       <BgGlassmorphism />
+
+
+      {/* SINGLE HEADER */}
+      <header className="container 2xl:px-14 rounded-md sm:rounded-xl mt-10">
+        <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="md:col-span-1 lg:col-span-2 h-[300px] md:h-[400px]">
+            <div className="relative h-full w-full">
+              {data.galleryImgs && data.galleryImgs[0] ? (
+                typeof data.galleryImgs[0] === 'string' ? (
+                  <img src={data.galleryImgs[0]} alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
+                ) : (
+                  <img src={data.galleryImgs[0].toString()} alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
+                )
+              ) : (
+                <img src="/placeholder.jpg" alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
+              )}
+            </div>
+          </div>
+          <div className="hidden md:grid md:col-span-1 grid-rows-2 gap-4">
+            <div className="relative h-[190px]">
+              {data.galleryImgs && data.galleryImgs[1] ? (
+                typeof data.galleryImgs[1] === 'string' ? (
+                  <img src={data.galleryImgs[1]} alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
+                ) : (
+                  <img src={data.galleryImgs[1].toString()} alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
+                )
+              ) : (
+                <img src="/placeholder.jpg" alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
+              )}
+            </div>
+            <div className="relative h-[190px]">
+              {data.galleryImgs && data.galleryImgs[2] ? (
+                typeof data.galleryImgs[2] === 'string' ? (
+                  <img src={data.galleryImgs[2]} alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
+                ) : (
+                  <img src={data.galleryImgs[2].toString()} alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
+                )
+              ) : (
+                <img src="/placeholder.jpg" alt="Featured" className="absolute inset-0 object-cover rounded-xl h-full w-full" />
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
 
       {/* MAIN CONTENT */}
       <main className="container relative z-10 pt-12 pb-24 lg:pt-16 lg:pb-32">
