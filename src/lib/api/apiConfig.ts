@@ -257,8 +257,14 @@ apiClient.interceptors.response.use(
           
           // Only redirect to login if not already on login page
           if (!window.location.pathname.includes('/login')) {
+            // Get the current URL for redirect
+            const currentUrl = window.location.pathname + window.location.search;
+
+            // Save to localStorage as backup
+            localStorage.setItem('amr_redirect_after_login', currentUrl);
+
             // Redirect to login with return URL
-            const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+            const returnUrl = encodeURIComponent(currentUrl);
             window.location.href = `/login?redirect=${returnUrl}`;
           }
         }

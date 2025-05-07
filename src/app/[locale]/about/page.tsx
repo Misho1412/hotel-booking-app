@@ -1,6 +1,6 @@
 "use client";
 
-import rightImg from "@/images/about-hero-right.png";
+import rightImg from "@/images/hero-right.png";
 import React, { FC, useState, useEffect } from "react";
 import BgGlassmorphism from "@/components/BgGlassmorphism";
 import BackgroundSection from "@/components/BackgroundSection";

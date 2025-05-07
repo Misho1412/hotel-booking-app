@@ -45,8 +45,8 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
 
   const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState({
-    email: "",
-    password: "Welcome@1",
+    email: "mishoholmes@gmail.com",
+    password: "misho1234",
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -135,7 +135,7 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
           password: '',
         });
         
-        // Get the redirect URL from query parameters or localStorage backup
+        // Get the redirect URL from query parameters, localStorage, or referrer
         const urlParams = new URLSearchParams(window.location.search);
         let redirectUrl = urlParams.get('redirect') || '';
         
@@ -148,8 +148,15 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
             // Clear the saved redirect to prevent unwanted redirects in future
             localStorage.removeItem('amr_redirect_after_login');
           } else {
-            // Default fallback
-            redirectUrl = '/';
+            // Check document.referrer as a fallback
+            const referrer = document.referrer;
+            if (referrer && !referrer.includes('/login') && !referrer.includes('/signup')) {
+              console.log('Using referrer URL as redirect:', referrer);
+              redirectUrl = referrer;
+            } else {
+              // Default fallback
+              redirectUrl = '/';
+            }
           }
         }
         
@@ -159,7 +166,7 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
         setTimeout(() => {
           // Use router for navigation instead of window.location for better Next.js integration
           router.push(redirectUrl as any);
-        }, 1500); // Increased timeout to ensure the message is visible
+        }, 1000); // Reduced timeout to make redirect faster
       } else {
         console.error('Login failed:', result.message);
         setErrorMessage(result.message || 'Login failed. Please check your credentials and try again.');

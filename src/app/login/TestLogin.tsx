@@ -196,8 +196,8 @@ const TestLogin = () => {
       console.log('Manually triggering token refresh using /auth/api/v1/refresh/');
       
       // Get the base URL from environment variable or use default
-      const baseURL = process.env.NEXT_PUBLIC_AMR_API_URL || 'https://bookingengine.onrender.com';
-      const refreshURL = `${baseURL}/auth/api/v1/refresh/`;
+      const baseURL = process.env.NEXT_PUBLIC_AMR_API_URL || 'https://bookingengine.onrender.com/';
+      const refreshURL = `${baseURL}auth/api/v1/refresh/`;
       console.log('Refresh URL:', refreshURL);
       
       // Make direct API request to refresh token

@@ -573,48 +573,49 @@ const authService = {
   },
 
   /**
-   * Get current user profile information
-   * @returns Promise with user information
+   * Get the current user's profile
+   * @returns Promise with user profile data
    */
   getUserProfile: async (): Promise<User> => {
     try {
       console.log('Fetching user profile');
-      
-      // Get the token from localStorage
-      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
-      
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-      
+
       // Get the base URL from environment variable or apiClient
-      const baseURL = process.env.NEXT_PUBLIC_AMR_API_URL || 'https://amrbooking.onrender.com/api';
-      const fullURL = `${baseURL}/accounts/profile/`;
+      const baseURL = process.env.NEXT_PUBLIC_AMR_API_URL || apiClient.defaults.baseURL || 'https://bookingengine.onrender.com/';
+      const profileURL = `${baseURL}auth/api/v1/profile`;
       
-      console.log('Making direct fetch request to:', fullURL);
+      console.log('Making profile request to:', profileURL);
       
-      // Use direct fetch approach with correct token format
-      const response = await fetch(fullURL, {
+      // Use direct fetch approach
+      const response = await fetch(profileURL, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': `Token ${token}`
+          'Authorization': `Bearer ${localStorage.getItem('amr_auth_token')}`
         }
       });
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Profile fetch failed:', response.status, errorText);
-        throw new Error(`Failed to fetch user profile: ${response.statusText}`);
+        throw new Error('Failed to fetch user profile');
       }
       
-      const userData = await response.json();
-      console.log('User profile fetch successful');
+      const data = await response.json();
+      console.log('Profile data received:', data);
       
-      return userData;
-    } catch (error: any) {
-      console.error('Error getting user profile:', error);
+      // Map the response to our User interface
+      return {
+        id: data.id || '',
+        username: data.username || data.email || '',
+        email: data.email || '',
+        firstName: data.first_name || '',
+        lastName: data.last_name || '',
+        phone: data.phone || '',
+        createdAt: data.created_at || new Date().toISOString(),
+        updatedAt: data.updated_at || new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
       throw error;
     }
   },

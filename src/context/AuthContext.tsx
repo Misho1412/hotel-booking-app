@@ -195,10 +195,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       console.log('Login response received:', authResult);
       
-      if (authResult.tokens) {
+      // Check for token in the response
+      if (authResult.token) {
         // Store tokens
-        localStorage.setItem('amr_auth_token', authResult.tokens.access_token);
-        localStorage.setItem('amr_refresh_token', authResult.tokens.refresh_token);
+        localStorage.setItem('amr_auth_token', authResult.token);
+        if (authResult.refreshToken) {
+          localStorage.setItem('amr_refresh_token', authResult.refreshToken);
+        }
         
         // Dispatch auth event to notify other tabs/components
         const authEvent = new CustomEvent('auth-event', {
@@ -206,24 +209,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
         window.dispatchEvent(authEvent);
         
-        // Fetch user data with the new token
-        try {
-          const userData = await authService.getUserProfile();
-          setUser(userData);
-          console.log('User data set after login:', userData.email);
-          setIsLoading(false);
-          return { success: true };
-        } catch (userError) {
-          console.error('Error fetching user data after login:', userError);
-          setIsLoading(false);
-          return { 
-            success: false, 
-            message: "Login successful but unable to fetch user profile. Please try again." 
-          };
-        }
+        // Set user data from email for now
+        setUser({
+          id: 'temp',
+          username: credentials.email,
+          email: credentials.email,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+
+        setIsLoading(false);
+        return { success: true };
       } else {
-        // Handle case where tokens are missing
-        console.error('Login response missing tokens:', authResult);
+        // Handle case where token is missing
+        console.error('Login response missing token:', authResult);
         setIsLoading(false);
         return { 
           success: false, 
