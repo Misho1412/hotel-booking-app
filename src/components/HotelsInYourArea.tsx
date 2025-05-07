@@ -253,11 +253,8 @@ const HotelsInYourArea: React.FC<HotelsInYourAreaProps> = ({
           <div className="relative z-10 px-4 pt-6 pb-4">
             <div className="text-center mb-2">
               <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 dark:text-white">
-                {t('featuredPlaces.title') || "Featured Places to Stay"}
+                {t('featuredPlaces.title') || "Hotels in your area"}
               </h2>
-            </div>
-            <div className="text-center text-neutral-500 dark:text-neutral-400 max-w-2xl mx-auto">
-              <p>{t('featuredPlaces.subtitle') || "Popular places to stay that we recommend for you"}</p>
             </div>
           </div>
         </div>

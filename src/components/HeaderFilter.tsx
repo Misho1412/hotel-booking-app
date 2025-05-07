@@ -20,8 +20,7 @@ export interface HeaderFilterProps {
 const HeaderFilter: FC<HeaderFilterProps> = ({
   tabActive = "All",
   tabs = ["All", "New York", "Tokyo", "Paris", "London"],
-  subHeading = "Popular places to stay that Chisfis recommends for you",
-  heading = "Featured places to stay",
+  heading = "Hotels in your area",
   onTabChange,
 }) => {
   const [mounted, setMounted] = useState(false);
@@ -46,9 +45,7 @@ const HeaderFilter: FC<HeaderFilterProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-end justify-between">
         <div className="max-w-2xl">
           <h2 className="text-3xl md:text-4xl font-semibold">{heading}</h2>
-          <span className="mt-2 md:mt-4 font-normal block text-base sm:text-lg text-neutral-500 dark:text-neutral-400">
-            {subHeading}
-          </span>
+
         </div>
         <div className="mt-4 flex sm:justify-end">
           <ButtonSecondary href={getLocalizedUrl("/listing-stay", locale) as Route} className="!leading-none">

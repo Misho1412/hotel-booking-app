@@ -1,4 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+
+// Dynamically import the AuthStatusIndicator
+const AuthStatusIndicator = dynamic(
+  () => import('@/components/auth/AuthStatusIndicator'),
+  { ssr: false }
+);
 
 const TestLogin = () => {
   const [result, setResult] = useState<string | null>(null);
@@ -19,15 +26,15 @@ const TestLogin = () => {
   const loginFormats = {
     'user_provided': {
       label: 'User Provided Credentials',
-      body: { username: 'anasos20', password: 'Welcome@1' }
+      body: { email: 'mishoholmes@gmail.com', password: 'misho1234' }
     },
-    'username_password': {
-      label: 'Username/Password',
-      body: { username: 'anasos20', password: 'Welcome@1' }
+    'standard_login': {
+      label: 'Standard Login',
+      body: { email: 'mishoholmes@gmail.com', password: 'misho1234' }
     },
     'test_user': {
       label: 'Test User',
-      body: { username: 'anasos20', password: 'Welcome@1' }
+      body: { email: 'mishoholmes@gmail.com', password: 'misho1234' }
     }
   };
   
@@ -43,8 +50,8 @@ const TestLogin = () => {
       console.log('Credentials:', credentials);
       
       // Get login URL from env variable or use default
-      const baseURL = process.env.NEXT_PUBLIC_AMR_API_URL || 'https://amrbooking.onrender.com/api';
-      const loginURL = `${baseURL}/token/`;
+      const baseURL = process.env.NEXT_PUBLIC_AMR_API_URL || 'https://bookingengine.onrender.com/';
+      const loginURL = `${baseURL}auth/api/v1/login/`;
       console.log('Login URL:', loginURL);
       
       // Make direct API request
@@ -173,6 +180,109 @@ const TestLogin = () => {
     }
   };
   
+  // Refresh token function
+  const handleRefreshToken = async () => {
+    try {
+      setIsLoading(true);
+      setResult(null);
+      setError(null);
+      
+      if (!currentToken) {
+        setError('No token available to refresh');
+        setIsLoading(false);
+        return;
+      }
+      
+      console.log('Manually triggering token refresh using /auth/api/v1/refresh/');
+      
+      // Get the base URL from environment variable or use default
+      const baseURL = process.env.NEXT_PUBLIC_AMR_API_URL || 'https://bookingengine.onrender.com';
+      const refreshURL = `${baseURL}/auth/api/v1/refresh/`;
+      console.log('Refresh URL:', refreshURL);
+      
+      // Make direct API request to refresh token
+      const response = await fetch(refreshURL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Token ${currentToken}`
+        },
+        body: JSON.stringify({})
+      });
+      
+      console.log('Refresh token response status:', response.status);
+      
+      // Get the response body
+      const responseBody = await response.text();
+      console.log('Response body length:', responseBody.length);
+      
+      // Parse the response body
+      let data;
+      try {
+        data = JSON.parse(responseBody);
+      } catch (e) {
+        console.error('Error parsing response body:', e);
+        throw new Error('Invalid response format from server');
+      }
+      
+      if (!response.ok) {
+        throw new Error(data.detail || data.non_field_errors?.join(', ') || JSON.stringify(data));
+      }
+      
+      // Extract and store the new token
+      if (data.token) {
+        const tokenPreview = data.token.substring(0, 10) + '...';
+        console.log('New token received:', tokenPreview);
+        
+        // Store the new token in localStorage
+        localStorage.setItem('amr_auth_token', data.token);
+        console.log('New token stored in localStorage');
+        setCurrentToken(data.token);
+        
+        // Set the authorization header on axios for subsequent requests
+        import('axios').then(module => {
+          const axios = module.default;
+          axios.defaults.headers.common['Authorization'] = `Token ${data.token}`;
+          console.log('Set Authorization header on axios with refreshed token');
+        });
+        
+        // Also set it on apiClient
+        import('@/lib/api/apiConfig').then(module => {
+          const apiClient = module.default;
+          apiClient.defaults.headers.common['Authorization'] = `Token ${data.token}`;
+          console.log('Set Authorization header on apiClient with refreshed token');
+        });
+        
+        // Dispatch a custom event for auth state change
+        try {
+          const authEvent = new CustomEvent('auth-state-changed', { 
+            detail: { isAuthenticated: true, isRefresh: true } 
+          });
+          window.dispatchEvent(authEvent);
+          
+          // Update timestamp to notify other tabs
+          localStorage.setItem('auth_state_timestamp', Date.now().toString());
+          console.log('Auth event dispatched for token refresh');
+        } catch (error) {
+          console.error('Error dispatching auth event:', error);
+        }
+        
+        setResult(`Token refresh successful! New token stored in localStorage.
+          New token preview: ${tokenPreview}
+          
+          The UI should automatically update to reflect your authenticated state.`);
+      } else {
+        setError('No token in refresh response');
+      }
+    } catch (error: any) {
+      console.error('Refresh token error:', error);
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   // Clear token function
   const clearToken = () => {
     if (typeof window !== 'undefined') {
@@ -195,9 +305,65 @@ const TestLogin = () => {
       setResult('Token has been cleared from localStorage and API clients');
     }
   };
+
+  // Force refresh authentication state
+  const fixAuthentication = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        console.log('Fixing authentication state...');
+        
+        // Check if we have a token
+        const token = localStorage.getItem('amr_auth_token');
+        
+        if (token) {
+          console.log('Found token, ensuring proper auth state');
+          
+          // Create and dispatch a custom event
+          const authEvent = new CustomEvent('auth-state-changed', { 
+            detail: { isAuthenticated: true, source: 'test-login' } 
+          });
+          window.dispatchEvent(authEvent);
+          
+          // Update timestamp to notify other tabs
+          localStorage.setItem('auth_state_timestamp', Date.now().toString());
+          
+          // Update user email if needed
+          if (!localStorage.getItem('user_email')) {
+            localStorage.setItem('user_email', 'test@example.com');
+          }
+          
+          // Set token in API client headers
+          import('@/lib/api/apiConfig').then(module => {
+            const apiClient = module.default;
+            apiClient.defaults.headers.common['Authorization'] = `Token ${token}`;
+            console.log('Set Authorization header on apiClient');
+          });
+          
+          // Set token in axios headers
+          import('axios').then(module => {
+            const axios = module.default;
+            axios.defaults.headers.common['Authorization'] = `Token ${token}`;
+            console.log('Set Authorization header on axios');
+          });
+          
+          setResult('Authentication state fixed! Auth event dispatched and headers set. Try navigating to another page now.');
+        } else {
+          setError('No token found. Please login first.');
+        }
+      }
+    } catch (error: any) {
+      console.error('Error fixing authentication:', error);
+      setError(`Error fixing authentication: ${error.message}`);
+    }
+  };
   
   return (
     <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+      {/* Authentication Status */}
+      <div className="mb-5">
+        <AuthStatusIndicator />
+      </div>
+      
       <h3 className="text-lg font-medium mb-3">Authentication Debugging</h3>
       
       {/* Current token status */}
@@ -218,7 +384,7 @@ const TestLogin = () => {
         )}
       </div>
       
-      <div className="flex space-x-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-4">
         <button 
           onClick={testApiWithToken}
           disabled={!currentToken || isLoading}
@@ -228,11 +394,27 @@ const TestLogin = () => {
         </button>
         
         <button 
+          onClick={handleRefreshToken}
+          disabled={!currentToken || isLoading}
+          className={`flex-1 p-2 rounded text-white text-xs ${!currentToken || isLoading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
+        >
+          Refresh Token
+        </button>
+        
+        <button 
           onClick={clearToken}
           disabled={!currentToken || isLoading}
           className={`flex-1 p-2 rounded text-white text-xs ${!currentToken || isLoading ? 'bg-gray-400' : 'bg-red-600 hover:bg-red-700'}`}
         >
           Clear Token
+        </button>
+        
+        <button 
+          onClick={fixAuthentication}
+          disabled={!currentToken || isLoading}
+          className={`w-full mt-2 p-2 rounded text-white text-xs ${!currentToken || isLoading ? 'bg-gray-400' : 'bg-purple-600 hover:bg-purple-700'}`}
+        >
+          Fix Authentication
         </button>
       </div>
       

@@ -2,7 +2,7 @@ import apiClient from '../apiConfig';
 import { IHotel, IHotelListResponse, IHotelSearchParams, mockHotels, mockHotelListResponse, mockHotel } from '../schemas/hotel';
 import { validateRequest, validateResponse } from '../validation';
 import { z } from 'zod';
-import { mockFeaturedHotels, mockPaginatedHotelList } from '../mockData/hotels';
+import { mockFeaturedHotels, mockPaginatedHotelList } from '../mockData/hotels/api/v1/';
 
 // Interface for Hotel entity
 export interface Hotel {
@@ -124,86 +124,81 @@ async function retryWithBackoff<T>(
  */
 class HotelService {
   /**
-   * Get all hotels with optional filters
+   * Get all hotels/api/v1/ with pagination and filters
+   * @param params Optional search parameters
+   * @returns Promise with paginated hotel listing
    */
   async getHotels(params?: IHotelSearchParams): Promise<IHotelListResponse> {
     try {
-      console.log('Fetching hotels with params:', params);
+      console.log('Getting hotels/api/v1/ with params:', params);
       
-      // Get token and add to request if available
+      // Convert params to API expected format
+      const apiParams: Record<string, any> = {};
+      
+      if (params?.page) apiParams.page = params.page;
+      if (params?.page_size) apiParams.page_size = params.page_size;
+      if (params?.name) apiParams.name = params.name;
+      if (params?.city) apiParams.city = params.city;
+      if (params?.country) apiParams.country = params.country;
+      if (params?.minRating) apiParams.min_rating = params.minRating;
+      if (params?.maxRating) apiParams.max_rating = params.maxRating;
+      
+      // Get authentication token if available
       const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
-      const headers: Record<string, string> = {};
+      
+      // Create headers with token if available
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      };
       
       if (token) {
-        // Use correct format: "Token <token>" instead of "Bearer <token>" 
         headers['Authorization'] = `Token ${token}`;
       }
       
-      const response = await apiClient.get<IHotelListResponse>('/hotels/', { 
-        params,
-        headers
-      });
+      // Make API request using the new endpoint
+      const response = await apiClient.get('/hotels/api/v1//api/v1/', { params: { page: 1, page_size: 8 } });
+
       
-      console.log(`Hotels API response status: ${response.status}`);
-      console.log(`Retrieved ${response.data.results.length} hotels, total: ${response.data.count}`);
+      console.log(`Retrieved ${response.data.results?.length} hotels/api/v1/`);
       
       return response.data;
     } catch (error: any) {
-      // Check if this is an authentication error
-      if (error.response?.status === 401) {
-        console.error("Authentication failed when accessing hotels API:", error.message);
-        // Try to access public endpoint as fallback
-        try {
-          console.log("Attempting to access public hotels endpoint");
-          const fallbackResponse = await apiClient.get<IHotelListResponse>('/hotels/public/', { params });
-          return fallbackResponse.data;
-        } catch (fallbackError) {
-          console.error("Fallback hotels request failed:", fallbackError);
-          throw new Error(`Authentication error when accessing hotels: ${error.message}`);
-        }
-      }
-      // Re-throw other errors with improved message
-      console.error("Error fetching hotels:", error);
-      throw new Error(`Failed to retrieve hotels: ${error.message}`);
+      console.error('Get hotels/api/v1/ error:', error);
+      throw new Error(`Failed to retrieve hotels/api/v1/: ${error.message}`);
     }
   }
-  
+
   /**
-   * Get details for a specific hotel by its ID
+   * Get a specific hotel by ID
+   * @param id The hotel ID
+   * @returns Promise with hotel details
    */
   async getHotelDetails(id: string): Promise<IHotel> {
     try {
-      console.log(`Fetching details for hotel ID: ${id}`);
+      console.log(`Getting hotel details for ID: ${id}`);
       
-      // Get token and add to request if available
+      // Get authentication token if available
       const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
-      const headers: Record<string, string> = {};
+      
+      // Create headers with token if available
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      };
       
       if (token) {
-        // Use correct format: "Token <token>" instead of "Bearer <token>"
         headers['Authorization'] = `Token ${token}`;
       }
       
-      const response = await apiClient.get<IHotel>(`/hotels-public/${id}/`, { headers });
-      console.log(`Hotel details API response status: ${response.status}`);
+      // Make API request using the new endpoint
+      const response = await apiClient.get(`/hotels/api/v1//api/v1/${id}/`, { headers });
+      
+      console.log('Retrieved hotel details successfully');
       
       return response.data;
     } catch (error: any) {
-      // Check if this is an authentication error
-      if (error.response?.status === 401) {
-        console.error("Authentication failed when accessing hotel details API:", error.message);
-        // Try public endpoint
-        try {
-          console.log("Attempting to access public hotel details endpoint");
-          const fallbackResponse = await apiClient.get<IHotel>(`/hotels-public/${id}/`);
-          return fallbackResponse.data;
-        } catch (fallbackError) {
-          console.error("Fallback hotel details request failed:", fallbackError);
-          throw new Error(`Authentication error when accessing hotel details: ${error.message}`);
-        }
-      }
-      // Re-throw other errors with improved message
-      console.error("Error fetching hotel details:", error);
+      console.error('Get hotel details error:', error);
       throw new Error(`Failed to retrieve hotel details: ${error.message}`);
     }
   }
@@ -224,7 +219,7 @@ class HotelService {
         headers['Authorization'] = `Token ${token}`;
       }
       
-      const response = await apiClient.get<IHotel>(`/hotels/slug/${slug}/`, { headers });
+      const response = await apiClient.get<IHotel>(`/hotels/api/v1//slug/${slug}/`, { headers });
       console.log(`Hotel by slug API response status: ${response.status}`);
       
       return response.data;
@@ -235,7 +230,7 @@ class HotelService {
         // Try public endpoint
         try {
           console.log("Attempting to access public hotel by slug endpoint");
-          const fallbackResponse = await apiClient.get<IHotel>(`/hotels/public/slug/${slug}/`);
+          const fallbackResponse = await apiClient.get<IHotel>(`/hotels/api/v1//public/slug/${slug}/`);
           return fallbackResponse.data;
         } catch (fallbackError) {
           console.error("Fallback hotel by slug request failed:", fallbackError);
@@ -264,7 +259,7 @@ class HotelService {
         headers['Authorization'] = `Token ${token}`;
       }
       
-      const response = await apiClient.post<IHotel>('/hotels/', hotelData, { headers });
+      const response = await apiClient.post<IHotel>('/hotels/api/v1//', hotelData, { headers });
       console.log(`Create hotel API response status: ${response.status}`);
       
       return response.data;
@@ -290,7 +285,7 @@ class HotelService {
         headers['Authorization'] = `Token ${token}`;
       }
       
-      const response = await apiClient.put<IHotel>(`/hotels/${id}/`, hotelData, { headers });
+      const response = await apiClient.put<IHotel>(`/hotels/api/v1//${id}/`, hotelData, { headers });
       console.log(`Update hotel API response status: ${response.status}`);
       
       return response.data;
@@ -316,7 +311,7 @@ class HotelService {
         headers['Authorization'] = `Token ${token}`;
       }
       
-      const response = await apiClient.patch<IHotel>(`/hotels/${id}/`, hotelData, { headers });
+      const response = await apiClient.patch<IHotel>(`/hotels/api/v1//${id}/`, hotelData, { headers });
       console.log(`Patch hotel API response status: ${response.status}`);
       
       return response.data;
@@ -342,7 +337,7 @@ class HotelService {
         headers['Authorization'] = `Token ${token}`;
       }
       
-      const response = await apiClient.delete(`/hotels/${id}/`, { headers });
+      const response = await apiClient.delete(`/hotels/api/v1//${id}/`, { headers });
       console.log(`Delete hotel API response status: ${response.status}`);
     } catch (error: any) {
       console.error("Error deleting hotel:", error);
@@ -351,11 +346,11 @@ class HotelService {
   }
 
   /**
-   * Search for hotels based on various criteria
+   * Search for hotels/api/v1/ based on various criteria
    */
   async searchHotels(params: IHotelSearchParams): Promise<IHotelListResponse> {
     try {
-      console.log('Searching hotels with params:', params);
+      console.log('Searching hotels/api/v1/ with params:', params);
       
       // Get token and add to request if available
       const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
@@ -366,40 +361,40 @@ class HotelService {
         headers['Authorization'] = `Token ${token}`;
       }
       
-      const response = await apiClient.get<IHotelListResponse>('/hotels/search/', { 
+      const response = await apiClient.get<IHotelListResponse>('/hotels/api/v1//search/', { 
         params,
         headers
       });
       console.log(`Hotel search API response status: ${response.status}`);
-      console.log(`Found ${response.data.results.length} hotels matching search criteria`);
+      console.log(`Found ${response.data.results.length} hotels/api/v1/ matching search criteria`);
       
       return response.data;
     } catch (error: any) {
       // Check if this is an authentication error
       if (error.response?.status === 401) {
-        console.error("Authentication failed when searching hotels API:", error.message);
+        console.error("Authentication failed when searching hotels/api/v1/ API:", error.message);
         // Try public endpoint
         try {
           console.log("Attempting to access public hotel search endpoint");
-          const fallbackResponse = await apiClient.get<IHotelListResponse>('/hotels/public/search/', { params });
+          const fallbackResponse = await apiClient.get<IHotelListResponse>('/hotels/api/v1//public/search/', { params });
           return fallbackResponse.data;
         } catch (fallbackError) {
           console.error("Fallback hotel search request failed:", fallbackError);
-          throw new Error(`Authentication error when searching hotels: ${error.message}`);
+          throw new Error(`Authentication error when searching hotels/api/v1/: ${error.message}`);
         }
       }
       // Re-throw other errors with improved message
-      console.error("Error searching hotels:", error);
-      throw new Error(`Failed to search hotels: ${error.message}`);
+      console.error("Error searching hotels/api/v1/:", error);
+      throw new Error(`Failed to search hotels/api/v1/: ${error.message}`);
     }
   }
   
   /**
-   * Get featured hotels
+   * Get featured hotels/api/v1/
    */
   async getFeaturedHotels(limit?: number, filters?: { city?: string }): Promise<IHotel[]> {
     try {
-      console.log('🏨 Fetching featured hotels from backend API');
+      console.log('🏨 Fetching featured hotels/api/v1/ from backend API');
       const requestId = Math.random().toString(36).substring(7);
       
       // Get the token from localStorage if available - use 'amr_auth_token' to match the rest of the app
@@ -438,11 +433,11 @@ class HotelService {
       
       // Construct the full URL for detailed logging
       const baseUrl = apiClient.defaults.baseURL;
-      const fullUrl = `${baseUrl}/hotels-public/?${queryParams.toString()}`;
+      const fullUrl = `${baseUrl}/hotels/api/v1//api/v1/?${queryParams.toString()}`;
       console.log(`[${requestId}] Making request to: ${fullUrl}`);
       
       const startTime = Date.now();
-      const response = await apiClient.get('/hotels-public/', {
+      const response = await apiClient.get('/hotels/api/v1/', {
         params,
         headers,
         timeout: 10000, // 10 second timeout
@@ -455,14 +450,14 @@ class HotelService {
         const data = response.data;
         // Check if we have a valid response format
         if (data && data.results && Array.isArray(data.results)) {
-          console.log(`[${requestId}] Got ${data.results.length} hotels from API`);
+          console.log(`[${requestId}] Got ${data.results.length} /hotels/api/v1/ from API`);
           
           if (data.results.length > 0) {
-            // Return the hotels from the response
+            // Return the hotels/api/v1/ from the response
             return data.results;
           } else {
-            console.log(`[${requestId}] No hotels found, trying public endpoint`);
-            // If no featured hotels found, try fetching from a public endpoint
+            console.log(`[${requestId}] No hotels/api/v1/ found, trying public endpoint`);
+            // If no featured hotels/api/v1/ found, try fetching from a public endpoint
             return this.getHotelsByCity('all', limit);
           }
         } else {
@@ -474,7 +469,7 @@ class HotelService {
         throw new Error(`API returned status ${response.status}`);
       }
     } catch (error: any) {
-      console.error('Error fetching featured hotels:', error.message);
+      console.error('Error fetching featured /hotels/api/v1/:', error.message);
       if (error.response) {
         console.error('Response status:', error.response.status);
         console.error('Response data:', error.response.data);
@@ -486,11 +481,11 @@ class HotelService {
   }
   
   /**
-   * Get hotels by city
+   * Get hotels/api/v1/ by city
    */
   async getHotelsByCity(city: string, limit?: number): Promise<IHotel[]> {
     try {
-      console.log(`Fetching hotels for city: ${city}, limit: ${limit || 'default'}`);
+      console.log(`Fetching hotels/api/v1/ for city: ${city}, limit: ${limit || 'default'}`);
       
       // Get the token directly to make sure it's available
       const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
@@ -508,7 +503,7 @@ class HotelService {
         console.log('Added token with format: Token <token>');
       }
       
-      const response = await apiClient.get<IHotelListResponse>('/hotels/', { 
+      const response = await apiClient.get<IHotelListResponse>('/hotels/api/v1//', { 
         params: { 
           city, 
           page: 1,
@@ -518,18 +513,18 @@ class HotelService {
       });
       
       console.log(`Hotels API response status: ${response.status} ${response.statusText}`);
-      console.log(`Found ${response.data.results.length} hotels for ${city}`);
+      console.log(`Found ${response.data.results.length} hotels/api/v1/ for ${city}`);
       
       return response.data.results;
     } catch (error: any) {
       // Check if this is an authentication error
       if (error.response?.status === 401) {
-        console.error("Authentication failed when accessing hotels by city API:", error.message);
+        console.error("Authentication failed when accessing hotels/api/v1/ by city API:", error.message);
         
-        // Try to get hotels without authentication as fallback
-        console.log("Attempting to fetch hotels without authentication as fallback");
+        // Try to get hotels/api/v1/ without authentication as fallback
+        console.log("Attempting to fetch hotels/api/v1/ without authentication as fallback");
         try {
-          const fallbackResponse = await apiClient.get<IHotelListResponse>('/hotels/public/', { 
+          const fallbackResponse = await apiClient.get<IHotelListResponse>('/hotels/api/v1//public/', { 
             params: { 
               city, 
               page: 1,
@@ -538,24 +533,24 @@ class HotelService {
           });
           
           console.log(`Fallback API response status: ${fallbackResponse.status}`);
-          console.log(`Found ${fallbackResponse.data.results.length} hotels from fallback endpoint`);
+          console.log(`Found ${fallbackResponse.data.results.length} hotels/api/v1/ from fallback endpoint`);
           
           return fallbackResponse.data.results;
         } catch (fallbackError) {
           console.error("Fallback hotel request also failed:", fallbackError);
-          throw new Error(`Could not retrieve hotels for ${city}: ${error.message}`);
+          throw new Error(`Could not retrieve hotels/api/v1/ for ${city}: ${error.message}`);
         }
       }
       
       // Handle network errors
       if (error.code === 'ECONNABORTED' || !error.response) {
-        console.error("Network error when fetching hotels by city:", error);
-        throw new Error(`Network error when fetching hotels for ${city}. Please check your connection.`);
+        console.error("Network error when fetching hotels/api/v1/ by city:", error);
+        throw new Error(`Network error when fetching hotels/api/v1/ for ${city}. Please check your connection.`);
       }
       
       // Re-throw other errors with improved message
-      console.error("Error fetching hotels by city:", error);
-      throw new Error(`Failed to retrieve hotels for ${city}: ${error.message}`);
+      console.error("Error fetching hotels/api/v1/ by city:", error);
+      throw new Error(`Failed to retrieve hotels/api/v1/ for ${city}: ${error.message}`);
     }
   }
 
@@ -582,7 +577,7 @@ class HotelService {
       }
       
       // Construct the URL - try hotel amenities endpoint
-      const response = await apiClient.get(`/hotels-public/${hotelId}/amenities/`, { 
+      const response = await apiClient.get(`/hotels/api/v1/${hotelId}/amenities/`, { 
         headers
       });
       
@@ -595,7 +590,7 @@ class HotelService {
       // If first endpoint failed, fallback to the hotel details and extract amenities
       try {
         console.log(`Falling back to hotel details to extract amenities`);
-        const hotelResponse = await apiClient.get(`/hotels-public/${hotelId}/`, { 
+        const hotelResponse = await apiClient.get(`/hotels/api/v1/${hotelId}/`, { 
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
@@ -612,6 +607,38 @@ class HotelService {
       console.error('Get hotel amenities error:', error);
       // Return empty array instead of throwing to make UI more resilient
       return [];
+    }
+  }
+
+  /**
+   * Get hotel reservations for the logged-in user
+   * @returns Promise with the user's reservations
+   */
+  async getUserHotelReservations(): Promise<any[]> {
+    try {
+      // Get authentication token - required for this endpoint
+      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+      
+      if (!token) {
+        throw new Error('Authentication required to view your reservations');
+      }
+      
+      // Create headers with token
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Token ${token}`
+      };
+      
+      // Make API request to the reservations endpoint
+      const response = await apiClient.get('/hotels/api/v1//api/v1/hotel-reservation/', { headers });
+      
+      console.log(`Retrieved ${response.data.results?.length} user reservations`);
+      
+      return response.data.results || [];
+    } catch (error: any) {
+      console.error('Get user hotel reservations error:', error);
+      throw new Error(`Failed to retrieve your reservations: ${error.message}`);
     }
   }
 }

@@ -1,12 +1,10 @@
 import React from "react";
 import SectionHero from "@/app/(server-components)/SectionHero";
 import { getTranslations } from 'next-intl/server';
-import HotelsInYourArea from "@/components/HotelsInYourArea";
 import SectionHowItWork from "@/components/SectionHowItWork";
 import SectionSubscribe2 from "@/components/SectionSubscribe2";
-import SectionVideos from "@/components/SectionVideos";
 import SectionBecomeAnAuthor from "@/components/SectionBecomeAnAuthor";
-import BackgroundSection from "@/components/BackgroundSection";
+import SectionGridFeaturePlacesV2 from "@/components/SectionGridFeaturePlacesV2";
 
 interface Props {
   params: { locale: string }
@@ -28,36 +26,28 @@ export default async function PageHome({ params: { locale } }: Props) {
         <div className="absolute inset-0 bg-black bg-opacity-50" />
       </div>
 
-      {/* Header is positioned fixed at the top */}
-      
       {/* Main content */}
-      <div className="relative z-10">
+      <div className="relative ">
         {/* Hero section taking up most of the viewport */}
         <div className="min-h-screen">
-          <SectionHero className="pt-36 lg:pt-48" />
+          <SectionHero className="pt-28 lg:pt-36" />
         </div>
         
         {/* Rest of content with white background cards */}
-  <div className="bg-white/100 dark:bg-neutral-900/80 backdrop-blur-sm p-3 shadow-xl h-[700px] z-20">
-    <HotelsInYourArea />
-  </div>
-  
-  <div className="bg-[#252525] backdrop-blur-sm p-5 shadow-xl"> {/* Added margin-top */}
-    <SectionHowItWork />
-  </div>
-</div>
-          <div className="bg-white/100 dark:bg-neutral-900/80 backdrop-blur-sm p-5  shadow-xl">
-            <SectionSubscribe2 />
-          </div>
-
-          <div className="bg-white/100 dark:bg-neutral-900/80 backdrop-blur-sm p-5  shadow-xl">
-            <SectionVideos />
-          </div>
-
-          <div className="relative py-16 bg-white/100 dark:bg-neutral-900/80 backdrop-blur-sm p-5  shadow-xl">
-            <BackgroundSection />
-            <SectionBecomeAnAuthor />
-          </div>
+        {/* Featured Hotel Cards with new design */}
+        <div className="bg-white dark:bg-neutral-900 backdrop-blur-sm p-5 shadow-xl z-40">
+          <SectionGridFeaturePlacesV2 />
+        </div>
+        
+        <div className="bg-[#252525] backdrop-blur-sm p-5 shadow-xl">
+          <SectionHowItWork />
+        </div>
+        {/* RoomTypes section with its own background */}
+        <SectionSubscribe2 />
+        <div className="bg-[#252525] backdrop-blur-sm p-5 shadow-xl">
+          <SectionBecomeAnAuthor />
+        </div>
+      </div>
     </main>
   );
 } 

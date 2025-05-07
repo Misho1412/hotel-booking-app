@@ -229,7 +229,7 @@ const messages = {
         title: "How it works",
         subtitle: "Keep calm & travel on",
         bookAndRelax: {
-          title: "Book & relax",
+          title: "See it all",
           description: "Let each trip be an inspirational journey, each room a peaceful space"
         },
         smartChecklist: {

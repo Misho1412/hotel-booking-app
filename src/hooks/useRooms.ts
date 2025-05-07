@@ -5,6 +5,8 @@ import {
   RoomRequest, 
   PatchedRoomRequest,
   RoomAvailabilityParams,
+  RoomReservationOptionsResponse,
+  MealPlan
 } from '@/lib/api/services';
 
 export const useRooms = () => {
@@ -43,6 +45,33 @@ export const useRooms = () => {
       queryKey: ['roomAvailability', params],
       queryFn: () => roomService.checkRoomAvailability(params),
       enabled: !!params.hotelId && !!params.checkInDate && !!params.checkOutDate,
+    });
+  };
+
+  // NEW: Get room reservation options for a hotel
+  const getRoomReservationOptions = (hotelId: string) => {
+    return useQuery<RoomReservationOptionsResponse>({
+      queryKey: ['roomReservationOptions', hotelId],
+      queryFn: () => roomService.getRoomReservationOptions(hotelId),
+      enabled: !!hotelId,
+    });
+  };
+
+  // NEW: Get meal plans for a hotel
+  const getMealPlans = (hotelId: string) => {
+    return useQuery<MealPlan[]>({
+      queryKey: ['mealPlans', hotelId],
+      queryFn: () => roomService.getMealPlans(hotelId),
+      enabled: !!hotelId,
+    });
+  };
+
+  // NEW: Get rooms by type
+  const getRoomsByType = (roomTypeId: string) => {
+    return useQuery<Room[]>({
+      queryKey: ['rooms', 'type', roomTypeId],
+      queryFn: () => roomService.getRoomsByType(roomTypeId),
+      enabled: !!roomTypeId,
     });
   };
 
@@ -98,6 +127,9 @@ export const useRooms = () => {
     getRoom,
     getRoomDetails,
     checkRoomAvailability,
+    getRoomReservationOptions,
+    getMealPlans,
+    getRoomsByType,
     createRoom,
     updateRoom,
     patchRoom,

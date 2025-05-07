@@ -29,6 +29,17 @@
   "filters": {
     "found": "تم العثور على {count} فندق",
     "inCity": "في {city}",
-    "withStars": "بتصنيف {stars} نجوم"
+    "withStars": "بتصنيف {stars} نجوم",
+    "hotelChains": {
+      "title": "سلاسل الفنادق",
+      "description": "تصفية حسب سلسلة الفنادق",
+      "allChains": "جميع السلاسل",
+      "noChains": "لا توجد سلاسل فندقية متاحة"
+    },
+    "reservations": {
+      "title": "حجوزاتك",
+      "viewAll": "عرض جميع الحجوزات",
+      "noReservations": "ليس لديك أي حجوزات حتى الآن"
+    }
   }
 } 

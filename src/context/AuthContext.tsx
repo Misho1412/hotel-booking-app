@@ -1,124 +1,299 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import authService, { User, AuthTokenRequest, UserRegistrationRequest } from '@/lib/api/services/authService';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import authService, { User, AuthTokenRequest, UserRegistrationRequest, VerifyOTPRequest } from '@/lib/api/services/authService';
 import apiClient from '@/lib/api/apiConfig';
+import axios from 'axios';
+import { useRouter as useRouterOld } from 'next/router';
+import { useRouter as useRouterApp } from 'next/navigation';
 
 // Define the context interface
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (credentials: AuthTokenRequest) => Promise<void>;
+  login: (credentials: AuthTokenRequest) => Promise<{success: boolean, message?: string}>;
   register: (userData: UserRegistrationRequest) => Promise<void>;
+  verifyOtp: (verifyData: VerifyOTPRequest) => Promise<void>;
+  resendOtp: (email: string) => Promise<void>;
   logout: () => void;
-  updateProfile: (userData: Partial<User>) => Promise<void>;
+  refreshToken: () => Promise<boolean>;
 }
 
-// Create the context with default values
+// Create the context with a default value
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  isLoading: true,
+  isLoading: false,
   isAuthenticated: false,
-  login: async () => {},
+  login: async () => ({success: false}),
   register: async () => {},
+  verifyOtp: async () => {},
+  resendOtp: async () => {},
   logout: () => {},
-  updateProfile: async () => {},
+  refreshToken: async () => false,
 });
 
-// Provider props interface
+// Custom hook to use the auth context
+export const useAuth = () => useContext(AuthContext);
+
+// Props interface for the provider
 interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Create the auth provider component
+// Update the AuthToken interface to include tokens object
+export interface AuthToken {
+  token: string;
+  refreshToken?: string;
+  message?: string;
+  tokens?: {
+    access_token: string;
+    refresh_token: string;
+  };
+}
+
+// Provider component
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-
-  // Function to fetch user profile
-  const fetchUserProfile = async () => {
-    try {
-      console.log('Fetching user profile');
-      const token = authService.getToken();
-      if (!token) {
-        console.log('No auth token available, cannot fetch profile');
-        setUser(null);
-        setIsAuthenticated(false);
-        setIsLoading(false);
-        return;
-      }
-      
-      console.log('Auth token found, fetching profile');
-      
-      // Ensure token is in the headers
-      apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      const userData = await authService.getUserProfile();
-      console.log('User profile fetched successfully:', userData);
-      setUser(userData);
-      setIsAuthenticated(true);
-    } catch (error: any) {
-      console.error('Error fetching user profile:', error);
-      
-      // Check if this is an auth error or token expired
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        console.log('Authentication error or token expired, logging out');
-        // Clear token if invalid
-        authService.logout();
-        
-        // Clear auth headers
-        delete apiClient.defaults.headers.common['Authorization'];
-      }
-      
-      setUser(null);
-      setIsAuthenticated(false);
-    } finally {
-      setIsLoading(false);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  // Add a new state to track token verification attempts
+  const [tokenCheckAttempts, setTokenCheckAttempts] = useState<number>(0);
+  
+  // Function to safely redirect without using router
+  const safeRedirect = (path: string) => {
+    if (typeof window !== 'undefined') {
+      window.location.href = path;
     }
   };
 
-  // Check authentication status on mount
-  useEffect(() => {
-    console.log('AuthProvider mounted, checking auth status');
-    if (authService.isAuthenticated()) {
-      console.log('Token found in localStorage, attempting to fetch profile');
-      fetchUserProfile();
-    } else {
-      console.log('No token found in localStorage');
-      setIsLoading(false);
-    }
-  }, []);
+  // Handle custom auth event from same tab
+  const handleAuthEvent = (event: CustomEvent) => {
+    console.log('Auth event received:', event.detail);
+    // Re-check authentication when auth events occur
+    checkAuth();
+  };
 
-  // Login function
-  const login = async (credentials: AuthTokenRequest) => {
+  // Handle storage changes from other tabs
+  const handleStorageEvent = (event: StorageEvent) => {
+    if (event.key === 'amr_auth_token' || event.key === 'amr_refresh_token') {
+      console.log('Auth token changed in another tab');
+      // Re-check authentication when token changes in another tab
+      checkAuth();
+    }
+  };
+
+  // Modified checkAuth function with better error handling and logging
+  const checkAuth = async () => {
     setIsLoading(true);
     try {
-      console.log('Login attempt with email:', credentials.email);
-      const response = await authService.login(credentials);
-      console.log('Login successful, token received:', !!response.token);
+      console.log('🔍 Checking authentication state...');
       
-      if (response.token) {
-        // Ensure token is in the headers for subsequent requests
-        apiClient.defaults.headers.common['Authorization'] = `Bearer ${response.token}`;
-        console.log('Token set in API client headers');
+      // Check for token in localStorage
+      const token = localStorage.getItem('amr_auth_token');
+      const refreshToken = localStorage.getItem('amr_refresh_token');
+      
+      // Debug token presence
+      console.log('Token present:', !!token);
+      console.log('Refresh token present:', !!refreshToken);
+      
+      if (!token) {
+        console.log('No token found, user is not authenticated');
+        setUser(null);
+        setIsLoading(false);
+        return false;
       }
       
-      await fetchUserProfile();
+      try {
+        // Get current user data using the token
+        const userData = await authService.getUserProfile();
+        console.log('User data fetched successfully:', userData.email);
+        
+        // Set the user data in state
+        setUser(userData);
+        setIsLoading(false);
+        return true;
+      } catch (error: any) {
+        console.error('Error fetching user data:', error.message);
+        
+        // Try to refresh the token if we have a refresh token
+        if (refreshToken) {
+          console.log('Attempting to refresh the token...');
+          const refreshSuccess = await refreshTokenAsync();
+          
+          if (refreshSuccess) {
+            console.log('Token refreshed successfully, retrying user data fetch');
+            // After successful refresh, try again to get user data
+            try {
+              const userData = await authService.getUserProfile();
+              setUser(userData);
+              setIsLoading(false);
+              return true;
+            } catch (retryError) {
+              console.error('Error fetching user data after token refresh:', retryError);
+            }
+          }
+        }
+        
+        // If we reach here, authentication failed
+        console.log('Authentication check failed, clearing tokens');
+        setUser(null);
+        // Clear tokens
+        localStorage.removeItem('amr_auth_token');
+        localStorage.removeItem('amr_refresh_token');
+        
+        setIsLoading(false);
+        return false;
+      }
+    } catch (error) {
+      console.error('Authentication check failed with error:', error);
+      setUser(null);
+      setIsLoading(false);
+      return false;
+    }
+  };
+
+  // Check auth state on mount
+  useEffect(() => {
+    const initialize = async () => {
+      await checkAuth();
+      setIsInitialized(true);
+    };
+    
+    initialize();
+    
+    // Add event listeners for auth state changes
+    window.addEventListener('storage', handleStorageEvent);
+    window.addEventListener('auth-event', handleAuthEvent as EventListener);
+    
+    // Add an interval to periodically check authentication status (every 5 minutes)
+    const intervalId = setInterval(() => {
+      setTokenCheckAttempts(prev => prev + 1);
+    }, 5 * 60 * 1000); // 5 minutes
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageEvent);
+      window.removeEventListener('auth-event', handleAuthEvent as EventListener);
+      clearInterval(intervalId);
+    };
+  }, []);
+  
+  // Additional effect to check auth when tokenCheckAttempts changes
+  useEffect(() => {
+    if (tokenCheckAttempts > 0) {
+      checkAuth();
+    }
+  }, [tokenCheckAttempts]);
+
+  /**
+   * Login user with credentials
+   */
+  const login = async (credentials: AuthTokenRequest) => {
+    try {
+      setIsLoading(true);
+      console.log('Attempting login with:', credentials.email);
+      
+      const authResult = await authService.login(credentials);
+      
+      console.log('Login response received:', authResult);
+      
+      if (authResult.tokens) {
+        // Store tokens
+        localStorage.setItem('amr_auth_token', authResult.tokens.access_token);
+        localStorage.setItem('amr_refresh_token', authResult.tokens.refresh_token);
+        
+        // Dispatch auth event to notify other tabs/components
+        const authEvent = new CustomEvent('auth-event', {
+          detail: { type: 'login', email: credentials.email }
+        });
+        window.dispatchEvent(authEvent);
+        
+        // Fetch user data with the new token
+        try {
+          const userData = await authService.getUserProfile();
+          setUser(userData);
+          console.log('User data set after login:', userData.email);
+          setIsLoading(false);
+          return { success: true };
+        } catch (userError) {
+          console.error('Error fetching user data after login:', userError);
+          setIsLoading(false);
+          return { 
+            success: false, 
+            message: "Login successful but unable to fetch user profile. Please try again." 
+          };
+        }
+      } else {
+        // Handle case where tokens are missing
+        console.error('Login response missing tokens:', authResult);
+        setIsLoading(false);
+        return { 
+          success: false, 
+          message: authResult.message || "Login failed: Invalid response from server" 
+        };
+      }
     } catch (error: any) {
       console.error('Login error:', error);
+      setIsLoading(false);
       
-      // Enhanced error logging
-      if (error.response) {
-        console.error('Login API response status:', error.response.status);
-        console.error('Login API response data:', error.response.data);
-      } else if (error.request) {
-        console.error('Login request was made but no response received');
+      // Provide a more descriptive error message
+      let errorMessage = "Login failed. Please try again.";
+      
+      if (error.response?.status === 401) {
+        errorMessage = "Invalid email or password. Please try again.";
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.message) {
+        errorMessage = error.message;
       }
       
-      throw error;
-    } finally {
-      setIsLoading(false);
+      return { success: false, message: errorMessage };
     }
+  };
+
+  /**
+   * Refresh the authentication token
+   */
+  const refreshTokenAsync = async (): Promise<boolean> => {
+    try {
+      console.log('Attempting to refresh authentication token');
+      const refreshResult = await authService.refreshToken();
+      
+      // Check if we got a new token
+      if (refreshResult.token) {
+        console.log('Successfully refreshed authentication token');
+        return true;
+      } else {
+        console.error('Token refresh successful but no token in response');
+        return false;
+      }
+    } catch (error) {
+      console.error('Failed to refresh authentication token:', error);
+      return false;
+    }
+  };
+
+  /**
+   * Logout user
+   */
+  const logout = () => {
+    console.log('Logging out user');
+    
+    // Clear tokens from local storage
+    localStorage.removeItem('amr_auth_token');
+    localStorage.removeItem('amr_refresh_token');
+    
+    // Clear user data
+    setUser(null);
+    
+    // Dispatch auth event to notify other tabs/components
+    const authEvent = new CustomEvent('auth-event', {
+      detail: { type: 'logout' }
+    });
+    window.dispatchEvent(authEvent);
+    
+    console.log('User logged out');
+    
+    // Redirect to login page
+    safeRedirect('/login');
   };
 
   // Register function
@@ -126,27 +301,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       console.log('Registration attempt from AuthContext with email:', userData.email);
-      console.log('Calling authService.register...');
-      const user = await authService.register(userData);
-      console.log('Registration successful, user created:', user);
+      await authService.register(userData);
+      console.log('Registration successful, verification pending');
       
-      // Automatically login after registration
-      console.log('Attempting automatic login after registration');
-      await authService.login({
-        email: userData.email,
-        password: userData.password,
-      });
-      
-      // Set the token in headers for all subsequent requests
-      const token = authService.getToken();
-      if (token) {
-        apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        console.log('Token set in API client headers after registration login');
-      }
-      
-      await fetchUserProfile();
+      // No longer automatically logging in after registration
+      // User must verify OTP first
     } catch (error: any) {
-      console.error('Registration error in AuthContext:', error);
+      console.error('Registration error:', error);
       
       // Enhanced error logging
       if (error.response) {
@@ -162,35 +323,62 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Logout function
-  const logout = () => {
-    console.log('Logging out user');
-    authService.logout();
-    
-    // Clear auth headers
-    delete apiClient.defaults.headers.common['Authorization'];
-    
-    setUser(null);
-    setIsAuthenticated(false);
-  };
-
-  // Update profile function
-  const updateProfile = async (userData: Partial<User>) => {
+  // Verify OTP function
+  const verifyOtp = async (verifyData: VerifyOTPRequest) => {
     setIsLoading(true);
     try {
-      console.log('Updating user profile');
-      const updatedUser = await authService.updateUserProfile({
-        ...userData,
-      });
-      console.log('User profile updated successfully');
-      setUser(updatedUser);
-    } catch (error: any) {
-      console.error('Update profile error:', error);
+      console.log('Verifying OTP for email:', verifyData.email);
+      const response = await authService.verifyOtp(verifyData);
+      console.log('OTP verification successful:', response);
       
-      // Check if this is an auth error
-      if (error.response?.status === 401) {
-        console.log('Authentication error during profile update, logging out');
-        logout();
+      // If the verification response includes a token, set up authentication
+      if (response && response.token) {
+        console.log('Authentication token received after OTP verification');
+        
+        // Store email for future reference (temporary solution)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('user_email', verifyData.email);
+          
+          // Instead of calling checkAuthStatus, trigger a refresh of auth state
+          const token = response.token;
+          // Update auth headers
+          const tokenParts = token.split('.');
+          if (tokenParts.length === 3) {
+            // For JWT tokens, use Bearer prefix
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          } else {
+            // For legacy tokens, use Token prefix
+            axios.defaults.headers.common['Authorization'] = `Token ${token}`;
+            apiClient.defaults.headers.common['Authorization'] = `Token ${token}`;
+          }
+          
+          // Try to get user data with the new token
+          try {
+            const userData = await authService.getUserProfile();
+            setUser(userData);
+            
+            // Dispatch auth event
+            const authEvent = new CustomEvent('auth-state-changed', { 
+              detail: { isAuthenticated: true } 
+            });
+            window.dispatchEvent(authEvent);
+          } catch (userError) {
+            console.error('Error fetching user data after OTP verification:', userError);
+          }
+        }
+      }
+      
+      return response;
+    } catch (error: any) {
+      console.error('OTP verification error:', error);
+      
+      // Enhanced error logging
+      if (error.response) {
+        console.error('OTP verification API response status:', error.response.status);
+        console.error('OTP verification API response data:', error.response.data);
+      } else if (error.request) {
+        console.error('OTP verification request was made but no response received');
       }
       
       throw error;
@@ -199,21 +387,61 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Context value
+  // Resend OTP function
+  const resendOtp = async (email: string) => {
+    setIsLoading(true);
+    try {
+      console.log('Resending OTP for email:', email);
+      const response = await authService.resendOtp(email);
+      console.log('OTP resend successful:', response);
+      return response;
+    } catch (error: any) {
+      console.error('OTP resend error:', error);
+      
+      // Enhanced error logging
+      if (error.response) {
+        console.error('OTP resend API response status:', error.response.status);
+        console.error('OTP resend API response data:', error.response.data);
+      } else if (error.request) {
+        console.error('OTP resend request was made but no response received');
+      }
+      
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value = {
     user,
     isLoading,
-    isAuthenticated,
+    isAuthenticated: !!user,
     login,
-    register,
     logout,
-    updateProfile,
+    register,
+    verifyOtp,
+    resendOtp,
+    refreshToken: refreshTokenAsync,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        isAuthenticated: !!user,
+        login,
+        register,
+        verifyOtp,
+        resendOtp,
+        logout,
+        refreshToken: refreshTokenAsync,
+      }}
+    >
+      {/* Only render children when auth is initialized to prevent flash of unauthenticated content */}
+      {isInitialized ? children : <div>Loading authentication...</div>}
+    </AuthContext.Provider>
+  );
 };
 
-// Custom hook to use the auth context
-export const useAuth = () => useContext(AuthContext);
-
-export default AuthContext; 
+export default AuthContext;

@@ -1,9 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { IHotel, IHotelListResponse, IHotelSearchParams } from '@/lib/api/schemas/hotel';
-import hotelService from '@/lib/api/services/hotelService';
+import apiClient from '@/lib/api/apiConfig';
 import { StayDataType } from '@/data/types';
 import { hotelToStayData, hotelsToStayData } from '@/lib/api/adapters';
 import { usePathname } from 'next/navigation';
+
+// Use an interface extension to add the hotel_chain parameter without conflicting with the imported HotelChain
+interface ExtendedHotelSearchParams extends IHotelSearchParams {
+  hotel_chain?: string;
+  name?: string;
+}
 
 interface UseHotelsState {
   isLoading: boolean;
@@ -20,7 +26,7 @@ interface UseHotelsState {
 }
 
 interface UseHotelsOptions {
-  initialParams?: IHotelSearchParams;
+  initialParams?: ExtendedHotelSearchParams;
   autoFetch?: boolean;
 }
 
@@ -34,7 +40,7 @@ export default function useHotels(options: UseHotelsOptions = {}) {
   const pathname = usePathname();
   const isArabic = pathname?.startsWith('/ar');
   
-  const [params, setParams] = useState<IHotelSearchParams>(initialParams);
+  const [params, setParams] = useState<ExtendedHotelSearchParams>(initialParams);
   const [state, setState] = useState<UseHotelsState>({
     isLoading: autoFetch,
     error: null,
@@ -50,38 +56,58 @@ export default function useHotels(options: UseHotelsOptions = {}) {
   });
   
   // Function to fetch hotels with current params
-  const fetchHotels = useCallback(async (searchParams: IHotelSearchParams = params) => {
+  const fetchHotels = useCallback(async (searchParams: ExtendedHotelSearchParams = params) => {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      // Fetch hotels from API
-      const response = await hotelService.getHotels(searchParams);
+      // Log the parameters we're using for debugging
+      console.log("Fetching hotels with params:", searchParams);
+      
+      // Build query parameters
+      const queryParams = new URLSearchParams();
+      
+      // Add search parameters to query
+      if (searchParams.page) queryParams.append('page', searchParams.page.toString());
+      if (searchParams.page_size) queryParams.append('page_size', searchParams.page_size.toString());
+      if (searchParams.name) queryParams.append('name', searchParams.name);
+      if (searchParams.city) queryParams.append('city', searchParams.city);
+      if (searchParams.star_rating) queryParams.append('star_rating', searchParams.star_rating.toString());
+      if (searchParams.min_price) queryParams.append('min_price', searchParams.min_price.toString());
+      if (searchParams.max_price) queryParams.append('max_price', searchParams.max_price.toString());
+      if (searchParams.hotel_chain) queryParams.append('hotel_chain', searchParams.hotel_chain);
+      
+      // Fetch hotels from API using the new endpoint
+      const response = await apiClient.get<IHotelListResponse>(
+        `/hotels/api/v1/?${queryParams.toString()}`
+      );
       
       // Calculate total pages
       const pageSize = searchParams.page_size || 10;
-      const totalPages = Math.ceil(response.count / pageSize);
+      const totalPages = Math.ceil(response.data.count / pageSize);
       const currentPage = searchParams.page || 1;
       
       // Convert to StayDataType for UI components
       // Pass isArabic flag for translations
-      const stayData = hotelsToStayData(response.results, isArabic);
+      const stayData = hotelsToStayData(response.data.results, isArabic);
       
-      setState({
+      setState(prev => ({
+        ...prev,
         isLoading: false,
         error: null,
-        hotels: response.results,
+        hotels: response.data.results,
         stayData,
         pagination: {
-          count: response.count,
-          next: response.next,
-          previous: response.previous,
+          count: response.data.count,
+          next: response.data.next,
+          previous: response.data.previous,
           currentPage,
           totalPages
         }
-      });
+      }));
       
-      return response;
+      return response.data;
     } catch (error) {
+      console.error("Error fetching hotels:", error);
       setState(prev => ({ 
         ...prev, 
         isLoading: false, 
@@ -96,18 +122,20 @@ export default function useHotels(options: UseHotelsOptions = {}) {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      const hotel = await hotelService.getHotelDetails(id);
+      // Fetch hotel from API using the new endpoint
+      const response = await apiClient.get<IHotel>(`/hotels/api/v1/${id}/`);
+      
       // Pass isArabic flag for translations
-      const stayDataItem = hotelToStayData(hotel, isArabic);
+      const stayDataItem = hotelToStayData(response.data, isArabic);
       
       setState(prev => ({
         ...prev,
         isLoading: false,
-        hotels: [hotel],
+        hotels: [response.data],
         stayData: [stayDataItem]
       }));
       
-      return hotel;
+      return response.data;
     } catch (error) {
       setState(prev => ({ 
         ...prev, 
@@ -118,96 +146,21 @@ export default function useHotels(options: UseHotelsOptions = {}) {
     }
   }, [isArabic]);
   
-  // Function to fetch a single hotel by slug
-  const fetchHotelBySlug = useCallback(async (slug: string) => {
+  // Function to fetch hotel amenities
+  const fetchHotelAmenities = useCallback(async (hotelId: string) => {
     try {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
+      console.log(`Fetching amenities for hotel ID: ${hotelId}`);
       
-      const hotel = await hotelService.getHotelBySlug(slug);
-      // Pass isArabic flag for translations
-      const stayDataItem = hotelToStayData(hotel, isArabic);
+      // Fetch amenities from API
+      const response = await apiClient.get(`/hotels/api/v1/${hotelId}/`);
       
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        hotels: [hotel],
-        stayData: [stayDataItem]
-      }));
-      
-      return hotel;
+      console.log(`Fetched ${response.data.length || 0} amenities`);
+      return response.data;
     } catch (error) {
-      setState(prev => ({ 
-        ...prev, 
-        isLoading: false, 
-        error: error instanceof Error ? error : new Error(`Failed to fetch hotel with slug ${slug}`) 
-      }));
-      throw error;
+      console.error(`Error fetching amenities for hotel ${hotelId}:`, error);
+      throw error instanceof Error ? error : new Error(`Failed to fetch amenities for hotel ${hotelId}`);
     }
-  }, [isArabic]);
-  
-  // Function to fetch featured hotels
-  const fetchFeaturedHotels = useCallback(async (limit?: number) => {
-    try {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
-      
-      const hotels = await hotelService.getFeaturedHotels(limit);
-      // Pass isArabic flag for translations
-      const stayData = hotelsToStayData(hotels, isArabic);
-      
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        hotels,
-        stayData,
-        pagination: {
-          ...prev.pagination,
-          count: hotels.length,
-          totalPages: 1
-        }
-      }));
-      
-      return hotels;
-    } catch (error) {
-      setState(prev => ({ 
-        ...prev, 
-        isLoading: false, 
-        error: error instanceof Error ? error : new Error('Failed to fetch featured hotels') 
-      }));
-      throw error;
-    }
-  }, [isArabic]);
-  
-  // Function to fetch hotels by city
-  const fetchHotelsByCity = useCallback(async (city: string, limit?: number) => {
-    try {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
-      
-      const hotels = await hotelService.getHotelsByCity(city, limit);
-      // Pass isArabic flag for translations
-      const stayData = hotelsToStayData(hotels, isArabic);
-      
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        hotels,
-        stayData,
-        pagination: {
-          ...prev.pagination,
-          count: hotels.length,
-          totalPages: 1
-        }
-      }));
-      
-      return hotels;
-    } catch (error) {
-      setState(prev => ({ 
-        ...prev, 
-        isLoading: false, 
-        error: error instanceof Error ? error : new Error(`Failed to fetch hotels in ${city}`) 
-      }));
-      throw error;
-    }
-  }, [isArabic]);
+  }, []);
   
   // Function to go to next page
   const nextPage = useCallback(() => {
@@ -239,31 +192,12 @@ export default function useHotels(options: UseHotelsOptions = {}) {
   }, [state.pagination.totalPages, params, fetchHotels]);
   
   // Function to update search parameters
-  const updateParams = useCallback((newParams: Partial<IHotelSearchParams>) => {
+  const updateParams = useCallback((newParams: Partial<ExtendedHotelSearchParams>) => {
     // When changing search criteria, reset to first page
     const updatedParams = { ...params, ...newParams, page: 1 };
     setParams(updatedParams);
     return fetchHotels(updatedParams);
   }, [params, fetchHotels]);
-  
-  // Function to fetch amenities for a specific hotel
-  const fetchHotelAmenities = useCallback(async (hotelId: string): Promise<any[]> => {
-    try {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
-      console.log(`Fetching amenities for hotel ID: ${hotelId}`);
-      const amenities = await hotelService.getHotelAmenities(hotelId);
-      console.log(`Fetched ${amenities.length} amenities for hotel ${hotelId}`);
-      return amenities;
-    } catch (error) {
-      console.error('Error fetching hotel amenities:', error);
-      setState(prev => ({ 
-        ...prev, 
-        isLoading: false, 
-        error: error instanceof Error ? error : new Error('Failed to fetch hotel amenities') 
-      }));
-      return [];
-    }
-  }, []);
   
   // Initial fetch effect
   useEffect(() => {
@@ -277,14 +211,11 @@ export default function useHotels(options: UseHotelsOptions = {}) {
     params,
     fetchHotels,
     fetchHotelById,
-    fetchHotelBySlug,
-    fetchFeaturedHotels,
-    fetchHotelsByCity,
+    fetchHotelAmenities,
     nextPage,
     prevPage,
     goToPage,
     updateParams,
-    setParams,
-    fetchHotelAmenities
+    setParams
   };
 } 

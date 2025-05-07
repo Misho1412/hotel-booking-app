@@ -8,6 +8,7 @@ import {
 import { validateRequest, validateResponse } from '../validation';
 import { z } from 'zod';
 import { Room, RoomType } from './roomService';
+import axios from 'axios';
 
 // Interface for Reservation entity
 export interface Reservation {
@@ -36,16 +37,19 @@ export interface Reservation {
 
 // Interface for creating a reservation (backend format)
 export interface ReservationBackendRequest {
-  room_id: string;
-  childs: string;
-  adults: string;
-  price_per_night: string;
-  payment_method: string;
-  currency: string;
-  special_requests: string;
-  check_in_date: string;
-  check_out_date: string;
-  notes?: string;
+  // Required fields as per the API schema
+  hotel_id: string;
+  room_type_id: string;
+  room_view_id: string;
+  num_rooms: string; // Number of rooms (typically "1")
+  meal_plan_counts: Record<string, number>; // Format: { "meal_plan_id": quantity } 
+  from_date: string; // Format should match API expectation (e.g., "YYYY-MM-DD")
+  to_date: string; // Format should match API expectation (e.g., "YYYY-MM-DD")
+  
+  // Optional fields as per the API schema
+  adults?: string;
+  children?: string; // API expects "children" not "childs"
+  special_requests?: string;
 }
 
 // Interface for creating a reservation (frontend format)
@@ -160,8 +164,8 @@ const reservationService = {
         throw new Error('Authentication required to view reservation details');
       }
       
-      // Call /reservation/{id}/ instead of /reservations/{id}/
-      const response = await apiClient.get(`/reservation/${reservationId}/`, { headers });
+      // Use the specified endpoint /reservations/api/v1/{reservation_id}/
+      const response = await apiClient.get(`/reservations/api/v1/${reservationId}/`, { headers });
       
       console.log(`Reservation details retrieved, status: ${response.status}`);
       
@@ -186,60 +190,29 @@ const reservationService = {
    * @param reservationData - The data for the new reservation (can be in backend or frontend format)
    * @returns Promise with created reservation
    */
-  createReservation: async (reservationData: ReservationRequest | ReservationBackendRequest): Promise<Reservation> => {
+  createReservation: async (reservationData: ReservationBackendRequest): Promise<any> => {
     try {
-      // Get the token directly to make sure it's available
-      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+      console.log('Creating reservation with data:', reservationData);
       
-      // Create headers with token if available
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers['Authorization'] = `Token ${token}`;
+      // Make sure all required fields are present
+      const requiredFields = ['hotel_id', 'room_type_id', 'room_view_id', 'num_rooms', 'meal_plan_counts', 'from_date', 'to_date'];
+      const missingFields = requiredFields.filter(field => !reservationData[field as keyof ReservationBackendRequest]);
+      
+      if (missingFields.length > 0) {
+        console.error('Missing required fields for reservation:', missingFields);
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
       }
       
-      let mappedReservationData;
-
-      // Check if the data is already in the backend format
-      if ('room_id' in reservationData) {
-        console.log('Using backend reservation format:', reservationData);
-        mappedReservationData = reservationData;
-      } else {
-        // Map frontend field names to API expected field names
-        console.log('Converting frontend reservation format to backend format');
-        const frontendData = reservationData as ReservationRequest;
-
-        // Format dates from YYYY-MM-DD to DD/MM/YYYY
-        const formatDateForBE = (dateStr: string) => {
-          const [year, month, day] = dateStr.split('-');
-          return `${day}/${month}/${year}`;
-        };
-
-        mappedReservationData = {
-          room_id: frontendData.roomId,
-          childs: "0", // Default value
-          adults: frontendData.guestCount ? frontendData.guestCount.toString() : "1",
-          price_per_night: "0", // This should be set by the API
-          payment_method: "credit_card", // Default value
-          currency: "USD",
-          special_requests: frontendData.specialRequests || "",
-          check_in_date: formatDateForBE(frontendData.checkInDate),
-          check_out_date: formatDateForBE(frontendData.checkOutDate),
-          notes: "Booking from website" // Default notes
-        };
-      }
-
-      const response = await apiClient.post<any>('/reservation/', mappedReservationData, { headers });
-      
-      console.log('Create reservation response:', response.status);
-      
-      // Validate response data - using unknown as intermediary
-      // const validatedResponse = validateResponse(ReservationSchema, response.data as unknown);
-      
-      // return validatedResponse as unknown as Reservation;
+      const response = await apiClient.post('/reservations/api/v1/', reservationData);
+      console.log('Reservation created successfully:', response.data);
       return response.data;
-    } catch (error: any) {
-      console.error('Create reservation error:', error);
-      throw new Error(`Failed to create reservation: ${error.message}`);
+    } catch (error) {
+      console.error('Error creating reservation:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        console.error('API error response:', error.response.data);
+        throw new Error(`Reservation creation failed: ${JSON.stringify(error.response.data)}`);
+      }
+      throw error;
     }
   },
 
@@ -268,13 +241,13 @@ const reservationService = {
         ...validatedReservationData,
         check_in_date: validatedReservationData.checkInDate,
         check_out_date: validatedReservationData.checkOutDate,
-        number_of_guests: validatedReservationData.numberOfGuests,
+        number_of_guests: validatedReservationData.guestCount,
       };
 
       // Remove the original properties to avoid duplication
       delete (mappedReservationData as any).checkInDate;
       delete (mappedReservationData as any).checkOutDate;
-      delete (mappedReservationData as any).numberOfGuests;
+      delete (mappedReservationData as any).guestCount;
 
       const response = await apiClient.put<any>(`/reservations/${reservationId}/`, mappedReservationData, { headers });
       

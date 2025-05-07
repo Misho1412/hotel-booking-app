@@ -36,7 +36,7 @@ const loginSocials = [
 ];
 
 const PageLogin: FC<PageLoginProps> = ({}) => {
-  const { login, isLoading } = useAuth();
+  const { login, isLoading: isAuthLoading, isAuthenticated } = useAuth();
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -45,16 +45,30 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
 
   const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState({
-    username: "anasos20",
+    email: "",
     password: "Welcome@1",
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    // Redirect to home or the original redirect URL if already authenticated
+    if (isAuthenticated) {
+      console.log("User already authenticated, redirecting to:", redirectTo);
+      setRedirecting(true);
+      
+      // Use a short timeout to avoid immediate redirect
+      // This helps with page transition animations
+      setTimeout(() => {
+        router.push(redirectTo as any);
+      }, 100);
+    }
+  }, [isAuthenticated, redirectTo, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -74,9 +88,11 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
     
-    // Validate username
-    if (!formData.username.trim()) {
-      errors.username = "Username is required";
+    // Validate email
+    if (!formData.email.trim()) {
+      errors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = "Please enter a valid email address";
     }
     
     // Validate password
@@ -90,87 +106,77 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(null);
-    setSuccessMessage(null);
     
-    // Validate form
     if (!validateForm()) {
       return;
     }
     
-    console.log("Attempting to login with:", {
-      username: formData.username,
-      passwordLength: formData.password.length,
-    });
-
+    setIsLoading(true);
+    setErrorMessage('');
+    setSuccessMessage('');
+    
     try {
-      setSuccessMessage("Logging in...");
+      console.log('Attempting login with email:', formData.email);
       
-      // Use direct fetch approach that works in TestLogin component
-      const baseURL = process.env.NEXT_PUBLIC_AMR_API_URL || 'https://amrbooking.onrender.com/api';
-      const fullURL = `${baseURL}/token/`;
-      
-      console.log("Login URL:", fullURL);
-      
-      // Make sure we're using the exact content type as expected by the API
-      const response = await fetch(fullURL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          password: formData.password
-        })
+      // Call the login function from AuthContext
+      const result = await login({
+        email: formData.email,
+        password: formData.password,
       });
       
-      console.log("Login response status:", response.status);
-      
-      // Get the response body regardless of status
-      const responseBody = await response.text();
-      console.log("Response body:", responseBody);
-      
-      // Try to parse it as JSON if possible
-      let jsonData;
-      try {
-        jsonData = JSON.parse(responseBody);
-      } catch (e) {
-        jsonData = { rawResponse: responseBody };
-      }
-      
-      if (!response.ok) {
-        console.error("Login failed:", jsonData);
-        throw new Error(jsonData.detail || jsonData.non_field_errors?.join(', ') || JSON.stringify(jsonData));
-      }
-      
-      console.log("Login successful:", jsonData);
-      
-      // Store token in localStorage
-      if (jsonData.token) {
-        localStorage.setItem('amr_auth_token', jsonData.token);
-        console.log('Token stored in localStorage');
+      if (result.success) {
+        console.log('Login successful');
+        // Show success message
+        setSuccessMessage('Login successful! Redirecting...');
         
-        // Set the token in the API client headers for all subsequent requests
-        // Import axios and set the default Authorization header
-        const axios = (await import('axios')).default;
-        axios.defaults.headers.common['Authorization'] = `Token ${jsonData.token}`;
+        // Clear form data
+        setFormData({
+          email: '',
+          password: '',
+        });
         
-        // Also import the apiClient specifically to set its authorization header
-        const apiClient = (await import('@/lib/api/apiConfig')).default;
-        apiClient.defaults.headers.common['Authorization'] = `Token ${jsonData.token}`;
-        console.log('Token set in API client headers with "Token" prefix');
+        // Get the redirect URL from query parameters or localStorage backup
+        const urlParams = new URLSearchParams(window.location.search);
+        let redirectUrl = urlParams.get('redirect') || '';
+        
+        // If no redirect in URL, check localStorage
+        if (!redirectUrl) {
+          const savedRedirect = localStorage.getItem('amr_redirect_after_login');
+          if (savedRedirect) {
+            console.log('Found saved redirect URL in localStorage:', savedRedirect);
+            redirectUrl = savedRedirect;
+            // Clear the saved redirect to prevent unwanted redirects in future
+            localStorage.removeItem('amr_redirect_after_login');
+          } else {
+            // Default fallback
+            redirectUrl = '/';
+          }
+        }
+        
+        console.log('Redirecting to:', redirectUrl);
+        
+        // Show success message briefly before redirecting
+        setTimeout(() => {
+          // Use router for navigation instead of window.location for better Next.js integration
+          router.push(redirectUrl as any);
+        }, 1500); // Increased timeout to ensure the message is visible
+      } else {
+        console.error('Login failed:', result.message);
+        setErrorMessage(result.message || 'Login failed. Please check your credentials and try again.');
       }
-      
-      console.log("Login successful, redirecting to:", redirectTo);
-
-      // Use the redirect URL if provided, otherwise go to homepage
-      router.push(redirectTo as any);
     } catch (error: any) {
-      console.error("Login error:", error);
-      setSuccessMessage(null);
+      console.error('Login error:', error);
+      let errorMsg = 'Login failed. Please try again.';
       
-      setErrorMessage(error.message || "Login failed. Please check your credentials and try again.");
+      if (error.message) {
+        errorMsg = error.message;
+      } else if (error.response?.data?.detail) {
+        errorMsg = error.response.data.detail;
+      }
+      
+      setErrorMessage(errorMsg);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -182,9 +188,16 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
         </h2>
         <div className="max-w-md mx-auto space-y-6">
           {/* Show the redirect notice if a redirect parameter is present */}
-          {redirectTo && redirectTo !== "/" && (
+          {redirectTo && redirectTo !== "/" && !redirecting && (
             <Alert className="mb-5">
               You'll be redirected back to your previous page after login.
+            </Alert>
+          )}
+
+          {/* Redirecting Message */}
+          {redirecting && (
+            <Alert type="success" className="mb-5">
+              Authentication successful! Redirecting you...
             </Alert>
           )}
 
@@ -228,23 +241,23 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
             </Alert>
           )}
           
-          {/* FORM */}
+          {/* FORM - disable if redirecting */}
           <form className="grid grid-cols-1 gap-6" onSubmit={handleSubmit}>
             <label className="block">
               <span className="text-neutral-800 dark:text-neutral-200">
-                Username
+                Email
               </span>
               <Input
-                type="text"
-                name="username"
-                value={formData.username}
+                type="email"
+                name="email"
+                value={formData.email}
                 onChange={handleChange}
-                placeholder="your.username"
-                className={`mt-1 ${validationErrors.username ? 'border-red-500' : ''}`}
+                placeholder="your.email@example.com"
+                className={`mt-1 ${validationErrors.email ? 'border-red-500' : ''}`}
                 required
               />
-              {validationErrors.username && (
-                <span className="text-red-500 text-sm">{validationErrors.username}</span>
+              {validationErrors.email && (
+                <span className="text-red-500 text-sm">{validationErrors.email}</span>
               )}
             </label>
             <label className="block">
@@ -266,8 +279,8 @@ const PageLogin: FC<PageLoginProps> = ({}) => {
                 <span className="text-red-500 text-sm">{validationErrors.password}</span>
               )}
             </label>
-            <ButtonPrimary type="submit" disabled={isLoading}>
-              {isLoading ? "Logging in..." : "Continue"}
+            <ButtonPrimary type="submit" disabled={isLoading || redirecting}>
+              {isLoading ? "Logging in..." : redirecting ? "Redirecting..." : "Continue"}
             </ButtonPrimary>
           </form>
 

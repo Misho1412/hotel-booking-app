@@ -40,6 +40,18 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "bookingengine.onrender.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "bookingengine.onrender.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };

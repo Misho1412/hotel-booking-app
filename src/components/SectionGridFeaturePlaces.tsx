@@ -79,12 +79,10 @@ const SectionGridFeaturePlaces: FC<SectionGridFeaturePlacesProps> = ({
 
   // Default values with translations
   const translatedHeading = useMemo(() => 
-    typeof heading === 'string' ? heading : (mounted ? t('featuredPlaces.title') : "Featured places to stay")
+    typeof heading === 'string' ? heading : (mounted ? t('featuredPlaces.title') : "Hotels in your area")
   , [heading, mounted, t]);
   
-  const translatedSubHeading = useMemo(() => 
-    typeof subHeading === 'string' ? subHeading : (mounted ? t('featuredPlaces.subtitle') : "Popular places to stay that Chisfis recommends for you")
-  , [subHeading, mounted, t]);
+
   
   const translatedTabs = useMemo(() => tabs || [
     "All",
@@ -94,12 +92,9 @@ const SectionGridFeaturePlaces: FC<SectionGridFeaturePlacesProps> = ({
   
   // Convert ReactNode heading and subHeading to strings for HeaderFilter
   const headingString = useMemo(() => 
-    typeof translatedHeading === 'string' ? translatedHeading : "Featured places to stay"
+    typeof translatedHeading === 'string' ? translatedHeading : "Hotels in your area"
   , [translatedHeading]);
-  
-  const subHeadingString = useMemo(() => 
-    typeof translatedSubHeading === 'string' ? translatedSubHeading : "Popular places to stay that Chisfis recommends for you"
-  , [translatedSubHeading]);
+
 
   // Handle tab change to filter by city
   const handleTabChange = useCallback((tab: string) => {
@@ -207,7 +202,6 @@ const SectionGridFeaturePlaces: FC<SectionGridFeaturePlacesProps> = ({
         tabActive={activeCity === 'all' ? translatedTabs[0] : 
                   activeCity === 'Makkah' ? translatedTabs[1] :
                   activeCity === 'Madinah' ? translatedTabs[2] : translatedTabs[0]}
-        subHeading={subHeadingString}
         tabs={translatedTabs}
         heading={headingString}
         onTabChange={handleTabChange}

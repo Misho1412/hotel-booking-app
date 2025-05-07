@@ -12,6 +12,8 @@
     --nero: rgba(37, 37, 37, 1);
     --variable-collection-accent: rgba(204, 204, 204, 1);
     --variable-collection-primery: rgba(37, 37, 37, 1);
+    
+
   }
   
   @media (prefers-color-scheme: dark) {
@@ -93,6 +95,86 @@ html[dir="rtl"] .ml-4 { margin-left: 0 !important; margin-right: 1rem !important
 /* SVG Background styles */
 .nc-Header svg {
   filter: drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.1));
+}
+
+/* New Search Form Styles */
+.nc-HeroSearchForm {
+  transition: all 0.3s ease;
+}
+
+.nc-HeroSearchForm .bg-\[\#1C1C1C\]\/61 {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+/* Black overlay styles */
+.nc-SectionHero .bg-black.opacity-50 {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* New styles for the Figma design */
+.nc-SectionHero {
+  background-size: cover;
+  background-position: center;
+}
+
+/* Featured Hotel Card Styles */
+.nc-SectionGridFeaturePlacesV2 .group:hover .rounded-3xl {
+  box-shadow: 0 10px 30px rgba(251, 191, 36, 0.2);
+  transform: translateY(-5px);
+  transition: all 0.3s ease;
+}
+
+.nc-SectionGridFeaturePlacesV2 .group .rounded-3xl {
+  transition: all 0.3s ease;
+}
+
+.nc-SectionGridFeaturePlacesV2 .border-amber-400 {
+  border-color: var(--amber-400);
+}
+
+.nc-SectionGridFeaturePlacesV2 .animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.9);
+  }
+}
+
+/* Responsive adjustments for the search form */
+@media (max-width: 1200px) {
+  .nc-HeroSearchForm .flex-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  
+  .nc-HeroSearchForm .flex-shrink-0 {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .nc-HeroSearchForm .flex-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .nc-HeroSearchForm .bg-\[\#1C1C1C\]\/61 {
+    height: auto;
+    padding: 20px 0;
+  }
+  
+  .nc-SectionHero h1 {
+    font-size: 3rem;
+  }
 }
 
 @layer components {

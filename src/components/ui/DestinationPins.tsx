@@ -16,9 +16,7 @@ export function DestinationPins() {
           <h2 className="text-3xl md:text-4xl font-semibold text-center mb-4">
             {t('featuredPlaces.title') || "Featured Destinations"}
           </h2>
-          <span className="text-base sm:text-lg text-neutral-500 dark:text-neutral-400 text-center">
-            {t('featuredPlaces.subtitle') || "Popular places to stay that we recommend for you"}
-          </span>
+
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-24 my-8">

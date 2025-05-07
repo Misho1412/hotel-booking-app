@@ -1,35 +1,46 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, Fragment } from "react";
+import { useRouter } from "next/navigation";
+import { StaticImageData } from "next/image";
+import Link from "next/link";
+import dynamic from 'next/dynamic';
+import { Dialog, Transition } from '@headlessui/react';
+import { toast } from "react-hot-toast";
+
+// Components
 import BgGlassmorphism from "@/components/BgGlassmorphism";
-import useHotels from "@/hooks/useHotels";
-import { IHotel } from "@/lib/api/schemas/hotel";
-import { StayDataType } from "@/data/types";
 import GallerySlider from "@/components/GallerySlider";
 import Avatar from "@/shared/Avatar";
-import SectionDateRange from "@/app/(listing-detail)/SectionDateRange";
 import StartRating from "@/components/StartRating";
 import Badge from "@/shared/Badge";
 import ButtonPrimary from "@/shared/ButtonPrimary";
 import ButtonSecondary from "@/shared/ButtonSecondary";
 import FiveStartIconForRate from "@/components/FiveStartIconForRate";
-import GuestsInput from "@/app/(listing-detail)/listing-stay-detail/GuestsInput";
-import StayDatesRangeInput from "@/app/(listing-detail)/listing-stay-detail/StayDatesRangeInput";
 import CommentListing from "@/components/CommentListing";
 import Spinner from "@/shared/Spinner";
 import Alert from "@/shared/Alert";
 import Amenity from "@/components/Amenity";
-import { useRouter } from "next/navigation";
-import { StaticImageData } from "next/image";
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
+import SectionDateRange from "@/app/(listing-detail)/SectionDateRange";
+import GuestsInput from "@/app/(listing-detail)/listing-stay-detail/GuestsInput";
+import StayDatesRangeInput from "@/app/(listing-detail)/listing-stay-detail/StayDatesRangeInput";
 import DateRangePickerWrapper from "./DateRangePickerWrapper";
 import GuestPickerWrapper from "./GuestPickerWrapper";
-import reservationService, { ReservationBackendRequest } from "@/lib/api/services/reservationService";
-import { toast } from "react-hot-toast";
-import Link from "next/link";
+
+// API and Services
+import useHotels from "@/hooks/useHotels";
 import { useRooms } from "@/hooks/useRooms";
-import roomService from "@/lib/api/services/roomService";
+import { useAuth } from "@/context/AuthContext";
+import { IHotel } from "@/lib/api/schemas/hotel";
+import { StayDataType } from "@/data/types";
+import reservationService, { ReservationBackendRequest } from "@/lib/api/services/reservationService";
+import roomService, { RoomReservationOption, MealPlan } from "@/lib/api/services/roomService";
+
+// Dynamically import components
+const AuthStatusIndicator = dynamic(
+  () => import('@/components/auth/AuthStatusIndicator'),
+  { ssr: false }
+);
 
 export interface HotelPageProps {
   params: {
@@ -61,11 +72,12 @@ interface Room {
 export default function HotelPage({ params }: HotelPageProps) {
   const { id } = params;
   const router = useRouter();
+  const { isAuthenticated, user } = useAuth();
+  const [manualAuthCheck, setManualAuthCheck] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isGuestPickerOpen, setIsGuestPickerOpen] = useState(false);
   const [isBookingLoading, setIsBookingLoading] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [stayDuration, setStayDuration] = useState(3); // Default to 3 nights
@@ -95,12 +107,25 @@ export default function HotelPage({ params }: HotelPageProps) {
   const [isLoadingAmenities, setIsLoadingAmenities] = useState(false);
   const authCheckedRef = useRef(false);
   
-  // Get room service hooks
-  const { getRoomDetails } = useRooms();
+  // Get all room-related hooks
+  const roomHooks = useRooms();
+  const { 
+    getRoomsByType 
+  } = roomHooks;
 
   // Add new state for dynamic pricing
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
 
+  // Add new state for room reservation options and meal plans
+  const [roomOptions, setRoomOptions] = useState<RoomReservationOption[]>([]);
+  const [selectedRoomOption, setSelectedRoomOption] = useState<RoomReservationOption | null>(null);
+  const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
+  const [selectedMealPlan, setSelectedMealPlan] = useState<MealPlan | null>(null);
+  const [isLoadingRoomOptions, setIsLoadingRoomOptions] = useState(false);
+  const [isLoadingMealPlans, setIsLoadingMealPlans] = useState(false);
+  const [roomOptionsError, setRoomOptionsError] = useState<Error | null>(null);
+  const [mealPlansError, setMealPlansError] = useState<Error | null>(null);
+  
   // Calculate price breakdown when inputs change
   useEffect(() => {
     if (!selectedRoom && rooms.length > 0) {
@@ -121,16 +146,6 @@ export default function HotelPage({ params }: HotelPageProps) {
       });
     }
   }, [selectedRoom, stayDuration, rooms]);
-
-  // Check authentication status once on component mount
-  useEffect(() => {
-    // Only check auth once to prevent infinite loading
-    if (!authCheckedRef.current) {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
-      setIsLoggedIn(!!token);
-      authCheckedRef.current = true;
-    }
-  }, []);
 
   // Fetch hotel data when component mounts
   useEffect(() => {
@@ -175,8 +190,8 @@ export default function HotelPage({ params }: HotelPageProps) {
         }
         
         // Get API base URL from env or use default
-        const baseURL = process.env.NEXT_PUBLIC_AMR_API_URL || 'https://amrbooking.onrender.com/api';
-        const roomsURL = `${baseURL}/hotels-public/${id}/rooms/`;
+        const baseURL = process.env.NEXT_PUBLIC_AMR_API_URL || 'https://bookingengine.onrender.com/';
+        const roomsURL = `${baseURL}rooms/api/v1/${id}`;
         
         console.log('Fetching rooms from:', roomsURL);
         
@@ -260,6 +275,451 @@ export default function HotelPage({ params }: HotelPageProps) {
     fetchAmenities();
   }, [id, fetchHotelAmenities]);
 
+  // Add a useEffect to perform a manual auth check
+  useEffect(() => {
+    // Check for token in localStorage
+    const token = localStorage.getItem('amr_auth_token');
+    console.log('Manual token check:', !!token);
+    setManualAuthCheck(!!token);
+  }, []);
+
+  // Fetch room reservation options and meal plans when hotel is selected
+  useEffect(() => {
+    const fetchRoomOptionsAndMealPlans = async () => {
+      if (!id) return;
+      
+      // Fetch room reservation options
+      try {
+        setIsLoadingRoomOptions(true);
+        setRoomOptionsError(null);
+        
+        console.log('Fetching room options with dates:', {
+          checkInDate: checkInDate?.toISOString(),
+          checkOutDate: checkOutDate?.toISOString()
+        });
+        
+        // Always fetch all available rooms first without date filtering
+        let roomOptionsData = await roomService.getRoomReservationOptions(id);
+        
+        // If dates are selected, filter the rooms again
+        if (checkInDate && checkOutDate) {
+          try {
+            const filteredOptions = await roomService.getRoomReservationOptions(id, checkInDate, checkOutDate);
+            if (filteredOptions && filteredOptions.options && filteredOptions.options.length > 0) {
+              roomOptionsData = filteredOptions;
+            } else {
+              toast("No rooms available for selected dates. Showing all rooms instead.");
+            }
+          } catch (error) {
+            console.error("Error filtering rooms by date:", error);
+            toast("Could not filter rooms by date. Showing all available rooms.");
+          }
+        }
+        
+        console.log('Room options data:', roomOptionsData);
+        
+        if (roomOptionsData && roomOptionsData.options) {
+          // Filter options based on guest count if specified
+          let filteredOptions = roomOptionsData.options;
+          if (guestCount > 0) {
+            filteredOptions = roomOptionsData.options.filter(option => option.max_occupancy >= guestCount);
+            
+            // If no rooms match guest count, show all options with a warning
+            if (filteredOptions.length === 0) {
+              toast("No rooms available for this number of guests. Showing all rooms.");
+              filteredOptions = roomOptionsData.options;
+            }
+          }
+          
+          setRoomOptions(filteredOptions);
+          // Pre-select the first option if available
+          if (filteredOptions.length > 0) {
+            setSelectedRoomOption(filteredOptions[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching room options:', error);
+        setRoomOptionsError(error instanceof Error ? error : new Error('Failed to fetch room options'));
+      } finally {
+        setIsLoadingRoomOptions(false);
+      }
+      
+      // Fetch meal plans
+      try {
+        setIsLoadingMealPlans(true);
+        setMealPlansError(null);
+        
+        const mealPlansData = await roomService.getMealPlans(id);
+        console.log('Meal plans data:', mealPlansData);
+        
+        if (mealPlansData && mealPlansData.length > 0) {
+          setMealPlans(mealPlansData);
+          // Pre-select the first meal plan if available
+          setSelectedMealPlan(mealPlansData[0]);
+        } else {
+          // Add a default meal plan if none are returned
+          const defaultMealPlan = {
+            id: "1",
+            name: "Standard Breakfast",
+            description: "Continental breakfast included",
+            price: 15,
+            currency: "USD",
+            included_meals: ["Breakfast"]
+          };
+          setMealPlans([defaultMealPlan]);
+          setSelectedMealPlan(defaultMealPlan);
+        }
+      } catch (error) {
+        console.error('Error fetching meal plans:', error);
+        setMealPlansError(error instanceof Error ? error : new Error('Failed to fetch meal plans'));
+        
+        // Add a default meal plan if fetch fails
+        const defaultMealPlan = {
+          id: "1",
+          name: "Standard Breakfast",
+          description: "Continental breakfast included",
+          price: 15,
+          currency: "USD",
+          included_meals: ["Breakfast"]
+        };
+        setMealPlans([defaultMealPlan]);
+        setSelectedMealPlan(defaultMealPlan);
+      } finally {
+        setIsLoadingMealPlans(false);
+      }
+    };
+    
+    fetchRoomOptionsAndMealPlans();
+  }, [id, checkInDate, checkOutDate, guestCount]);
+  
+  // Update handleRoomTypeSelect function to automatically select the room
+  const handleRoomTypeSelect = async (roomOption: RoomReservationOption) => {
+    console.log("Room option selected:", roomOption);
+    setSelectedRoomOption(roomOption);
+    
+    // Default to the first meal plan if none selected
+    if (!selectedMealPlan && mealPlans.length > 0) {
+      handleMealPlanSelect(mealPlans[0]);
+    }
+    
+    // Update price breakdown
+    updatePriceBreakdown(roomOption.price, selectedMealPlan?.price || 0);
+  };
+  
+  // Improved helper function to format dates for the API in the required "DD/MM/YYYY" format
+  const formatDateForAPI = (date: Date): string => {
+    // Ensure valid date input
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+      // Fallback to today's date if invalid
+      date = new Date();
+    }
+    
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
+  };
+
+  // Add a helper function to provide fallbacks for any missing reservation data
+  const prepareReservationData = (
+    hotelId: string,
+    roomOption: RoomReservationOption | null,
+    mealPlan: MealPlan | null,
+    checkInDate: Date | null,
+    checkOutDate: Date | null,
+    guestCount: number
+  ): ReservationBackendRequest => {
+    // Use fallback values for any missing data
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    
+    // Format required date values
+    const fromDate = checkInDate ? formatDateForAPI(checkInDate) : formatDateForAPI(today);
+    const toDate = checkOutDate ? formatDateForAPI(checkOutDate) : formatDateForAPI(tomorrow);
+    
+    // Create meal plan counts with default fallback
+    const mealPlanCounts: Record<string, number> = {};
+    if (mealPlan && mealPlan.id) {
+      mealPlanCounts[mealPlan.id] = Math.max(1, guestCount);
+    } else {
+      // Default meal plan ID if none is provided
+      mealPlanCounts["1"] = Math.max(1, guestCount);
+    }
+    
+    // Set fallback values for all required fields
+    return {
+      hotel_id: hotelId || "1",
+      room_type_id: roomOption?.room_type_id || "1",
+      room_view_id: roomOption?.room_view_id || "1",
+      num_rooms: "1", // Default to 1 room
+      meal_plan_counts: mealPlanCounts,
+      from_date: fromDate,
+      to_date: toDate,
+      adults: Math.max(1, guestCount).toString(),
+      children: "0", // API expects "children" not "childs"
+      special_requests: ""
+    };
+  };
+
+  // Update handleRoomBookNow function to use the helper for more robust data preparation
+  const handleRoomBookNow = async (roomOption: RoomReservationOption) => {
+    console.log('[HotelPage] handleRoomBookNow clicked', roomOption);
+    
+    // First select this room
+    await handleRoomTypeSelect(roomOption);
+    
+    // Ensure meal plan is selected
+    const mealPlan = selectedMealPlan || (mealPlans.length > 0 ? mealPlans[0] : null);
+    if (!mealPlan) {
+      toast("No meal plans available. Using default meal plan.");
+    }
+    
+    // Validate guest count
+    if (!guestCount || guestCount < 1) {
+      toast("Guest count must be at least 1. Using default value.");
+    }
+    
+    // Check authentication
+    const isUserAuthenticated = isAuthenticated || manualAuthCheck;
+    console.log("handleRoomBookNow called, authentication status:", isUserAuthenticated);
+    
+    if (!isUserAuthenticated) {
+      // Save current URL for later redirect
+      const currentUrl = window.location.pathname;
+      localStorage.setItem('amr_redirect_after_login', currentUrl);
+      
+      toast("Please sign in to make a reservation");
+      
+      // Redirect to login page
+      router.push(`/${params.locale}/login?redirect=${encodeURIComponent(currentUrl)}`);
+      return;
+    }
+    
+    try {
+      setIsBookingLoading(true);
+      
+      // Prepare reservation data with fallbacks for any missing values
+      const reservationData = prepareReservationData(
+        params.id,
+        roomOption,
+        mealPlan,
+        checkInDate,
+        checkOutDate,
+        guestCount || 1
+      );
+      
+      console.log("Creating reservation with data:", reservationData);
+      
+      // Make the API call to /reservations/api/v1/
+      const reservation = await reservationService.createReservation(reservationData);
+      console.log("Created reservation:", reservation);
+      
+      toast.success("Reservation created successfully!");
+      
+      // Redirect to payment page
+      router.push(`/${params.locale}/payment/${reservation.id}` as any);
+    } catch (error) {
+      console.error("Booking error:", error);
+      
+      // Display error message
+      if (error instanceof Error) {
+        toast(error.message);
+      } else {
+        toast("Failed to create reservation. Please try again.");
+      }
+      
+      // Check if error is due to authentication
+      if (error instanceof Error && 
+          (error.message.includes('auth') || 
+           error.message.includes('token') || 
+           error.message.includes('unauthorized'))) {
+        
+        localStorage.setItem('amr_redirect_after_login', window.location.pathname);
+        router.push(`/${params.locale}/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      }
+    } finally {
+      setIsBookingLoading(false);
+    }
+  };
+
+  // Add a handler for meal plan selection
+  const handleMealPlanSelect = (mealPlan: MealPlan) => {
+    setSelectedMealPlan(mealPlan);
+    
+    // Update price breakdown to include meal plan cost
+    if (selectedRoomOption) {
+      updatePriceBreakdown(selectedRoomOption.price, mealPlan.price);
+    }
+  };
+  
+  // Improve price calculation to reflect all factors
+  const updatePriceBreakdown = (roomPrice: number, mealPlanPrice: number = 0) => {
+    // Ensure valid nights calculation (minimum 1 night)
+    const nights = Math.max(1, stayDuration);
+    
+    // Calculate room subtotal
+    const roomSubtotal = roomPrice * nights;
+    
+    // Calculate meal plan total based on guests and nights
+    const mealPlanTotal = mealPlanPrice * (guestCount || 1) * nights;
+    
+    // Calculate service charge (10% of subtotal)
+    const subtotal = roomSubtotal + mealPlanTotal;
+    const serviceCharge = subtotal * 0.1;
+    
+    // Calculate total
+    const total = subtotal + serviceCharge;
+    
+    // Update state
+    setPriceBreakdown({
+      basePrice: roomPrice,
+      subtotal,
+      serviceCharge,
+      total
+    });
+  };
+
+  // Update the main handleBookNow to use the helper for more robust data preparation
+  const handleBookNow = async () => {
+    // Check authentication more reliably using both the context and manual token check
+    const isUserAuthenticated = isAuthenticated || manualAuthCheck;
+    console.log("HandleBookNow called, authentication status:", isUserAuthenticated);
+    
+    if (!isUserAuthenticated) {
+      // Save current URL including id parameter for later redirect
+      const currentUrl = window.location.pathname;
+      console.log(`User not authenticated, redirecting to login with return URL: ${currentUrl}`);
+      
+      // Store the current URL in localStorage for more reliable redirection after login
+      localStorage.setItem('amr_redirect_after_login', currentUrl);
+      
+      // Redirect to login page with redirect param
+      router.push(`/${params.locale}/login?redirect=${encodeURIComponent(currentUrl)}`);
+      return;
+    }
+
+    try {
+      setIsBookingLoading(true);
+      
+      // Prepare reservation data with fallbacks for any missing values
+      const reservationData = prepareReservationData(
+        params.id,
+        selectedRoomOption,
+        selectedMealPlan, 
+        checkInDate,
+        checkOutDate,
+        guestCount || 1
+      );
+      
+      console.log("Creating reservation with data:", reservationData);
+      
+      // Create reservation with the new format
+      const reservation = await reservationService.createReservation(reservationData);
+      console.log("Created reservation:", reservation);
+      
+      toast.success("Reservation created successfully!");
+      
+      // Redirect to payment page
+      router.push(`/${params.locale}/payment/${reservation.id}` as any);
+    } catch (error) {
+      console.error("Booking error:", error);
+      
+      // Display the specific error message from the API if available
+      if (error instanceof Error) {
+        const errorMessage = error.message;
+        if (errorMessage.includes('Reservation creation failed')) {
+          try {
+            // Try to extract and format the API error for better user feedback
+            const errorJson = errorMessage.replace('Reservation creation failed: ', '');
+            const parsedError = JSON.parse(errorJson);
+            let formattedError = "Reservation failed: ";
+            
+            // Extract specific field errors
+            Object.entries(parsedError).forEach(([field, errors]) => {
+              formattedError += `${field} - ${errors} `;
+            });
+            
+            toast(formattedError);
+          } catch (e) {
+            toast(errorMessage);
+          }
+        } else {
+          toast(errorMessage);
+        }
+      } else {
+        toast("Failed to create reservation. Please try again.");
+      }
+      
+      // Check if error is due to authentication
+      if (error instanceof Error && 
+          (error.message.includes('auth') || 
+           error.message.includes('token') || 
+           error.message.includes('unauthorized'))) {
+        
+        console.log("Authentication error during reservation, redirecting to login");
+        localStorage.setItem('amr_redirect_after_login', window.location.pathname);
+        router.push(`/${params.locale}/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      }
+    } finally {
+      setIsBookingLoading(false);
+    }
+  };
+
+  // Update handleDateChange to properly re-fetch room options without creating a circular reference
+  const handleDateChange = (startDate: Date, endDate: Date) => {
+    if (!startDate || !endDate) {
+      toast.error("Please select valid dates");
+      return;
+    }
+    
+    // Validate dates (ensure start is before end and not in the past)
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    
+    if (startDate < now) {
+      toast.error("Check-in date cannot be in the past");
+      return;
+    }
+    
+    if (endDate <= startDate) {
+      toast.error("Check-out date must be after check-in date");
+      return;
+    }
+    
+    setCheckInDate(startDate);
+    setCheckOutDate(endDate);
+    
+    // Calculate nights difference
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    setStayDuration(diffDays);
+    
+    // Close the date picker
+    setIsDatePickerOpen(false);
+    
+    // Provide feedback to the user
+    toast.success(`Updating room availability for ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`);
+    
+    // The useEffect tied to checkInDate and checkOutDate will trigger a refresh automatically
+  };
+  
+  // Update handleGuestChange to filter rooms based on capacity
+  const handleGuestChange = (count: number) => {
+    if (count <= 0) {
+      toast.error("Please select at least one guest");
+      return;
+    }
+    
+    setGuestCount(count);
+    setIsGuestPickerOpen(false);
+    
+    toast.success(`Updating room availability for ${count} guests`);
+    
+    // Room filtering will happen in the useEffect
+  };
+
   if (error) {
     return (
       <div className="container mx-auto py-10">
@@ -299,93 +759,22 @@ export default function HotelPage({ params }: HotelPageProps) {
     }
   };
   
-  const handleBookNow = async () => {
-    // Check if user is logged in first
-    const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
-
-    if (!token) {
-      toast.error("Please sign in to make a reservation");
-      router.push(`/${params.locale}/login?redirect=${encodeURIComponent(window.location.pathname)}`);
-      return;
-    }
-
-    // Check if a room has been selected
-    if (rooms.length === 0) {
-      toast.error("Please wait for rooms to load or try again later");
-      return;
-    }
-
-    // Get the first available room if no specific room is selected
-    // In a real implementation, you would want the user to explicitly select a room
-    const selectedRoom = rooms[0];
-    if (!selectedRoom || !selectedRoom.id) {
-      toast.error("No rooms available for this hotel. Please try another hotel.");
-      return;
-    }
-
-    try {
-      setIsBookingLoading(true);
-      // Format dates for URL parameters
-      const checkIn = checkInDate.toISOString().split('T')[0];
-      const checkOut = checkOutDate.toISOString().split('T')[0];
-      
-      // Format dates in the expected format (DD/MM/YYYY)
-      const formatDateForBE = (dateStr: string) => {
-        const [year, month, day] = dateStr.split('-');
-        return `${day}/${month}/${year}`;
-      };
-
-      // Step 1: Create a pending reservation using the reservationService with the backend format
-      const reservationData: ReservationBackendRequest = {
-        room_id: selectedRoom.id.toString(), // Use the selected room ID instead of hardcoded "1"
-        childs: "0", // Default to 0 children
-        adults: guestCount.toString(),
-        price_per_night: priceBreakdown.basePrice.toString(),
-        payment_method: "credit_card", // Default payment method
-        currency: "USD",
-        special_requests: "",
-        check_in_date: formatDateForBE(checkIn),
-        check_out_date: formatDateForBE(checkOut),
-        notes: "Reservation from hotel page"
-      };
-      
-      console.log("Creating reservation with room ID:", selectedRoom.id);
-      
-      // Create reservation with pending payment status
-      const reservation = await reservationService.createReservation(reservationData);
-      console.log("Created pending reservation:", reservation.id);
-      
-      // Redirect to success page
-      router.push(`/${params.locale}/reservation-success?reservationId=${reservation.id}` as any);
-    } catch (error) {
-      alert("Failed to create reservation. Please try again.");
-      console.error("Booking error:", error);
-      toast.error("Failed to create reservation. Please try again.");
-    } finally {
-      setIsBookingLoading(false);
-    }
-  };
-
-  // Update handleDateChange to recalculate prices
-  const handleDateChange = (startDate: Date, endDate: Date) => {
-    setCheckInDate(startDate);
-    setCheckOutDate(endDate);
-    
-    // Calculate nights difference
-    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    setStayDuration(diffDays);
-    
-    setIsDatePickerOpen(false);
-  };
-  
-  const handleGuestChange = (count: number) => {
-    setGuestCount(count);
-    setIsGuestPickerOpen(false);
-  };
-
   return (
     <div className="nc-ListingStayDetailPage relative">
+      {/* Authentication Status Indicator */}
+      <div className="mb-4 mt-4 max-w-md mx-auto">
+        <AuthStatusIndicator />
+      </div>
+      
+      {/* Debug Auth Status */}
+      <div className="bg-green-100 dark:bg-green-900 p-4 text-green-800 dark:text-green-200 text-center">
+        <p>Auth Status from Context: <strong>{isAuthenticated ? 'Logged In' : 'Not Logged In'}</strong></p>
+        <p>Auth Status from Manual Check: <strong>{manualAuthCheck ? 'Token Found' : 'No Token'}</strong></p>
+        {isAuthenticated && user && (
+          <span className="ml-2">as {user.email || user.username}</span>
+        )}
+      </div>
+
       <BgGlassmorphism />
 
       {/* SINGLE HEADER */}
@@ -533,7 +922,7 @@ export default function HotelPage({ params }: HotelPageProps) {
               <div className="prose prose-sm sm:prose mt-4 text-neutral-700 dark:text-neutral-300">
                 <p>{hotel.description}</p>
               </div>
-                    </div>
+            </div>
             
             {/* AMENITIES */}
             <div className="border-b border-neutral-200 dark:border-neutral-700 pb-8">
@@ -550,9 +939,9 @@ export default function HotelPage({ params }: HotelPageProps) {
                       const name = typeof amenity === 'string' ? amenity : 
                             (amenity && typeof amenity === 'object' && amenity.name) ? amenity.name : 
                             (amenity && typeof amenity === 'object' && amenity.amenity_name) ? amenity.amenity_name : 'Amenity';
-                      
+                        
                       const icon = (amenity && typeof amenity === 'object' && amenity.icon) ? amenity.icon : undefined;
-                      
+                        
                       return (
                         <Amenity key={index} name={name} icon={icon} />
                       );
@@ -562,7 +951,7 @@ export default function HotelPage({ params }: HotelPageProps) {
                       const name = typeof amenity === 'string' ? amenity : 
                             (amenity && typeof amenity === 'object' && amenity.name) ? amenity.name : 'Amenity';
                       const icon = (amenity && typeof amenity === 'object' && amenity.icon) ? amenity.icon : undefined;
-                      
+                        
                       return (
                         <Amenity key={index} name={name} icon={icon} />
                       );
@@ -627,6 +1016,39 @@ export default function HotelPage({ params }: HotelPageProps) {
             <div className="border-b border-neutral-200 dark:border-neutral-700 pb-8">
               <h3 className="text-2xl font-semibold mb-6">Available Rooms</h3>
               
+              {/* Filter Status Panel */}
+              <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 p-4 rounded-lg mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                  <div className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>
+                      <strong>Current Filters:</strong>
+                      {checkInDate && checkOutDate ? (
+                        <span className="ml-1">
+                          {checkInDate.toLocaleDateString()} - {checkOutDate.toLocaleDateString()} 
+                          ({stayDuration} night{stayDuration !== 1 ? 's' : ''})
+                        </span>
+                      ) : (
+                        <span className="ml-1">No dates selected</span>
+                      )}
+                      <span className="mx-1">•</span>
+                      <span>{guestCount} guest{guestCount !== 1 ? 's' : ''}</span>
+                    </span>
+                  </div>
+                  <button 
+                    onClick={() => setIsDatePickerOpen(true)}
+                    className="mt-2 sm:mt-0 inline-flex items-center px-3 py-1 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                    Update Filters
+                  </button>
+                </div>
+              </div>
+              
               {isLoadingRooms ? (
                 <div className="flex items-center justify-center py-10">
                   <Spinner className="h-10 w-10" />
@@ -642,90 +1064,55 @@ export default function HotelPage({ params }: HotelPageProps) {
                 </Alert>
               ) : (
                 <div className="space-y-6">
-                  {rooms.map((room, index) => (
-                    <div key={room.id || index} className="border border-neutral-200 dark:border-neutral-700 rounded-xl overflow-hidden">
-                      <div className="p-4 sm:p-6">
-                        <div className="flex flex-col sm:flex-row sm:items-center">
-                          {/* Room image */}
-                          <div className="relative w-full sm:w-40 h-32 mb-4 sm:mb-0 sm:mr-6 rounded-lg overflow-hidden">
+                  {rooms.map((room: Room) => (
+                    <div key={room.id || `room-${Math.random()}`} className="mb-8 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+                        {/* Room Image */}
+                        <div className="md:col-span-1">
+                          <div className="relative w-full h-52 md:h-full mb-4 md:mb-0 rounded-lg overflow-hidden">
                             {room.images && room.images.length > 0 ? (
                               <GallerySlider
-                                uniqueID={`room-${room.id}-${index}`}
+                                uniqueID={`room-${room.id}-${room.roomNumber || ''}`}
                                 galleryImgs={room.images.map((img: any) => 
                                   typeof img === 'string' ? img : (img && img.image) || ''
                                 ).filter(Boolean)}
-                                ratioClass="aspect-w-4 aspect-h-3"
-                                imageClass="object-cover"
-                                galleryClass="rounded-lg h-full"
-                                href={`#room-${room.id}`}
-                                navigation={true}
+                                ratioClass="aspect-w-12 aspect-h-8"
                               />
                             ) : (
-                              <img 
-                                src="/placeholder.jpg" 
-                                alt={room.name || 'Room'} 
-                                className="absolute inset-0 w-full h-full object-cover"
-                              />
+                              <div className="w-full h-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center">
+                                <span className="text-neutral-500">No image available</span>
+                              </div>
                             )}
                           </div>
-                          
-                          {/* Room details */}
-<<<<<<< HEAD
-                          <div className="flex-1">
-                            <h3 className="text-lg sm:text-xl font-medium mb-1">
-                              {room.roomType ? room.roomType.name : room.name || `Room ${room.roomNumber || room.id || (index + 1)}`}
-                            </h3>
-                            
-                            <div className="flex flex-wrap gap-2 mb-2">
-                              <Badge name={`${room.capacity || 2} Guests`} />
-                              {room.bedrooms && <Badge name={`${room.bedrooms} Bedroom${room.bedrooms > 1 ? 's' : ''}`} />}
-                              {room.roomNumber && <Badge name={`Room ${room.roomNumber}`} />}
-=======
-                          <div className="flex-grow">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                              <div>
-                                <h4 className="text-lg font-semibold">
-                                  {room.name || room.roomType?.name || `Room ${room.roomNumber || index + 1}`}
-                                </h4>
-                                <p className="text-neutral-500 text-sm mt-1">
-                                  {room.capacity || room.roomType?.capacity || 2} Guests • {room.bedrooms || 1} Bedroom
-                                </p>
+                        </div>
+
+                        {/* Room Details */}
+                        <div className="md:col-span-2">
+                          <div className="flex flex-col h-full justify-between">
+                            <div>
+                              <div className="flex justify-between items-start mb-2">
+                                <div>
+                                  <h3 className="text-xl font-bold">
+                                    {room.name || room.roomType?.name || `Room ${room.roomNumber || 'Standard'}`}
+                                  </h3>
+                                  <p className="text-sm text-neutral-500">
+                                    {room.bedrooms || 1} Bedroom • Sleeps {room.capacity || 2}
+                                  </p>
+                                </div>
+                                <div className="text-xl font-semibold text-primary-600">
+                                  ${room.defaultPrice || room.roomType?.defaultPrice || 99}
+                                  <span className="text-sm font-normal text-neutral-500">/night</span>
+                                </div>
                               </div>
                               
-                              <div className="text-right mt-3 sm:mt-0">
-                                <div className="text-xl font-semibold text-primary-600">
-                                  ${room.defaultPrice || room.roomType?.defaultPrice || 119}
-                                  <span className="text-sm text-neutral-500 font-normal">/night</span>
-                                </div>
-                                <div className="mt-3">
-                                  <ButtonPrimary 
-                                    className="px-4 py-2 text-sm"
-                                    onClick={() => {
-                                      setSelectedRoom(room);
-                                      if (isLoggedIn) {
-                                        handleBookNow();
-                                      } else {
-                                        router.push(`/${params.locale}/login?redirect=${encodeURIComponent(window.location.pathname)}`);
-                                      }
-                                    }}
-                                  >
-                                    {isLoggedIn ? "Book Now" : "Sign in to book"}
-                                  </ButtonPrimary>
-                                </div>
-                              </div>
->>>>>>> da359c771e073ce38a8f4004a35f618bd30f1b0e
-                            </div>
-                            
-                            <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-3">
-                              {room.description || room.roomType?.description || 'Comfortable room with all essential amenities for a pleasant stay.'}
-                            </p>
-                            
-                            {/* Room amenities */}
-                            {room.amenities && room.amenities.length > 0 && (
-                              <div className="mb-4">
-                                <h4 className="text-sm font-medium mb-2">Room Amenities:</h4>
-                                <div className="flex flex-wrap gap-2">
-                                  {room.amenities.map((amenity: any, idx: number) => {
+                              <p className="text-neutral-600 dark:text-neutral-300 mb-3 line-clamp-2">
+                                {room.description || room.roomType?.description || 'Comfortable room with all essential amenities for a pleasant stay.'}
+                              </p>
+                              
+                              {/* Room Amenities */}
+                              <div className="flex flex-wrap gap-2 mb-3">
+                                {room.amenities && room.amenities.length > 0 ? (
+                                  room.amenities.map((amenity: any, idx: number) => {
                                     const name = typeof amenity === 'string' ? amenity : 
                                           (amenity && typeof amenity === 'object' && amenity.name) ? amenity.name : 
                                           (amenity && typeof amenity === 'object' && amenity.amenity_name) ? amenity.amenity_name : '';
@@ -735,35 +1122,115 @@ export default function HotelPage({ params }: HotelPageProps) {
                                         {name}
                                       </span>
                                     ) : null;
-                                  }).filter(Boolean)}
+                                  }).filter(Boolean)
+                                ) : (
+                                  // Default amenities when none are provided
+                                  <>
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
+                                      WiFi
+                                    </span>
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
+                                      Air Conditioning
+                                    </span>
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
+                                      TV
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Check availability section */}
+                            <div className="flex flex-col sm:flex-row justify-between items-stretch pt-4 border-t border-dashed border-neutral-200 dark:border-neutral-700 mt-4">
+                              <div className="flex flex-col">
+                                <span className="text-sm text-neutral-500">Price for {stayDuration} night{stayDuration !== 1 ? 's' : ''}</span>
+                                <span className="text-lg font-bold text-primary-700">
+                                  ${(room.defaultPrice || room.roomType?.defaultPrice || 99) * stayDuration}
+                                </span>
+                                <span className="text-xs text-neutral-500 mt-1">
+                                  {guestCount} guest{guestCount !== 1 ? 's' : ''} 
+                                  {selectedMealPlan && ` • ${selectedMealPlan.name}`}
+                                </span>
+                              </div>
+                              
+                              <div className="flex mt-3 sm:mt-0">
+                                <ButtonSecondary 
+                                  onClick={() => fetchRoomDetails(room.id ? room.id.toString() : '')}
+                                  className="mr-2"
+                                >
+                                  {roomDetails[room.id?.toString() || ''] ? 'Hide Details' : 'View Details'}
+                                </ButtonSecondary>
+                                
+                                <ButtonPrimary 
+                                  onClick={() => {
+                                    // Find the corresponding room option from available options
+                                    const roomOption = roomOptions.find(
+                                      option => 
+                                        option.room_type_id === (room.roomType?.id?.toString() || '') || 
+                                        option.room_type_name === (room.roomType?.name || room.name || '')
+                                    );
+                                    
+                                    if (roomOption) {
+                                      handleRoomBookNow(roomOption);
+                                    } else {
+                                      toast("Could not find room option. Please select from the sidebar.");
+                                    }
+                                  }}
+                                  disabled={isBookingLoading}
+                                >
+                                  {isBookingLoading ? (
+                                    <div className="flex items-center">
+                                      <Spinner className="h-4 w-4 mr-2" />
+                                      <span>Booking...</span>
+                                    </div>
+                                  ) : (
+                                    <span>Book Now</span>
+                                  )}
+                                </ButtonPrimary>
+                              </div>
+                            </div>
+                            
+                            {/* Room details expansion */}
+                            {roomDetails[room.id?.toString() || ''] && (
+                              <div className="mt-4 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+                                <h4 className="text-lg font-medium mb-2">Room Details</h4>
+                                <p className="mb-2">{roomDetails[room.id?.toString() || ''].description || room.description}</p>
+                                
+                                <div className="grid grid-cols-2 gap-3 mt-3">
+                                  <div>
+                                    <h5 className="text-sm font-medium">Room Features</h5>
+                                    <ul className="list-disc list-inside text-sm mt-1 ml-2 text-neutral-600 dark:text-neutral-400">
+                                      {roomDetails[room.id?.toString() || ''].features ? (
+                                        roomDetails[room.id?.toString() || ''].features.map((feature: string, i: number) => (
+                                          <li key={i}>{feature}</li>
+                                        ))
+                                      ) : (
+                                        <>
+                                          <li>Air conditioning</li>
+                                          <li>Private bathroom</li>
+                                          <li>Flat-screen TV</li>
+                                        </>
+                                      )}
+                                    </ul>
+                                  </div>
+                                  <div>
+                                    <h5 className="text-sm font-medium">Bed Options</h5>
+                                    <ul className="list-disc list-inside text-sm mt-1 ml-2 text-neutral-600 dark:text-neutral-400">
+                                      {roomDetails[room.id?.toString() || ''].bed_options ? (
+                                        roomDetails[room.id?.toString() || ''].bed_options.map((bed: string, i: number) => (
+                                          <li key={i}>{bed}</li>
+                                        ))
+                                      ) : (
+                                        <>
+                                          <li>1 King bed</li>
+                                          <li>Or 2 Twin beds</li>
+                                        </>
+                                      )}
+                                    </ul>
+                                  </div>
                                 </div>
                               </div>
                             )}
-                            
-                            {/* Price and book button */}
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4">
-                              <div className="mb-3 sm:mb-0">
-                                <span className="text-xl font-semibold text-secondary-500">
-                                  ${room.defaultPrice || (room.roomType && room.roomType.defaultPrice) || priceBreakdown.basePrice}
-                                </span>
-                                <span className="text-sm text-neutral-500 dark:text-neutral-400"> / night</span>
-                              </div>
-                              
-                              <ButtonPrimary
-                                onClick={() => handleBookNow()}
-                                disabled={isBookingLoading}
-                                className="sm:w-auto w-full"
-                              >
-                                {isBookingLoading ? (
-                                  <>
-                                    <Spinner size="sm" className="mr-2" />
-                                    Processing...
-                                  </>
-                                ) : (
-                                  'Reserve'
-                                )}
-                              </ButtonPrimary>
-                            </div>
                           </div>
                         </div>
                       </div>
@@ -777,7 +1244,7 @@ export default function HotelPage({ params }: HotelPageProps) {
             <div>
               <h3 className="text-2xl font-semibold">Reviews ({data.reviewCount})</h3>
               <CommentListing />
-              </div>
+            </div>
           </div>
 
           {/* SIDEBAR */}
@@ -850,11 +1317,13 @@ export default function HotelPage({ params }: HotelPageProps) {
                       <span>Processing...</span>
                     </div>
                   ) : (
-                      <span>{isLoggedIn ? "Reserve" : "Sign in to reserve"}</span>
+                    <span>
+                      {isAuthenticated || manualAuthCheck ? "Reserve" : "Sign in to reserve"}
+                    </span>
                   )}
                 </ButtonPrimary>
                 <div className="mt-4 text-center">
-                  {isLoggedIn ? (
+                  {isAuthenticated || manualAuthCheck ? (
                     <span className="text-sm text-neutral-500 dark:text-neutral-400">
                       You won't be charged yet
                     </span>
@@ -907,6 +1376,183 @@ export default function HotelPage({ params }: HotelPageProps) {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* ROOM OPTIONS & RESERVATION */}
+            <div className="border-b border-neutral-200 dark:border-neutral-700 pb-8">
+              <h3 className="text-2xl font-semibold mb-6">Rooms & Reservation</h3>
+              
+              {/* Date Selection Notice */}
+              <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 p-3 rounded-lg mb-4 text-sm">
+                <p className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Room availability is based on your selected dates: 
+                  <strong className="ml-1">
+                    {checkInDate.toLocaleDateString()} - {checkOutDate.toLocaleDateString()}
+                  </strong>
+                </p>
+              </div>
+              
+              {/* Room Options */}
+              <div className="mb-6">
+                <h4 className="text-lg font-medium mb-3">Select Room Type & View</h4>
+                
+                {isLoadingRoomOptions ? (
+                  <div className="flex items-center justify-center py-5">
+                    <Spinner className="h-8 w-8" />
+                    <span className="ml-2">Loading room options...</span>
+                  </div>
+                ) : roomOptionsError ? (
+                  <Alert type="error" className="mb-4">
+                    <span className="font-medium">Error!</span> {roomOptionsError.message}
+                  </Alert>
+                ) : roomOptions.length === 0 ? (
+                  <Alert>No room options available for this hotel.</Alert>
+                ) : (
+                  <div className="grid gap-4">
+                    {roomOptions.map((option) => (
+                      <div 
+                        key={`${option.room_type_id}-${option.room_view_id}`}
+                        className={`border p-4 rounded-lg cursor-pointer transition-all ${
+                          selectedRoomOption && 
+                          selectedRoomOption.room_type_id === option.room_type_id && 
+                          selectedRoomOption.room_view_id === option.room_view_id
+                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                            : 'border-neutral-200 hover:border-primary-300 dark:border-neutral-700'
+                        }`}
+                        onClick={() => handleRoomTypeSelect(option)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h5 className="font-medium">{option.room_type_name}</h5>
+                            <p className="text-sm text-neutral-500">{option.room_view_name} View</p>
+                            <p className="text-sm mt-2">Max guests: {option.max_occupancy}</p>
+                          </div>
+                          <div className="text-lg font-bold text-primary-600">
+                            {option.currency === 'USD' ? '$' : option.currency} 
+                            {option.price}
+                            <span className="text-sm font-normal text-neutral-500">/night</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* Meal Plans */}
+              <div className="mb-6">
+                <h4 className="text-lg font-medium mb-3">Select Meal Plan</h4>
+                
+                {isLoadingMealPlans ? (
+                  <div className="flex items-center justify-center py-5">
+                    <Spinner className="h-8 w-8" />
+                    <span className="ml-2">Loading meal plans...</span>
+                  </div>
+                ) : mealPlansError ? (
+                  <Alert type="error" className="mb-4">
+                    <span className="font-medium">Error!</span> {mealPlansError.message}
+                  </Alert>
+                ) : mealPlans.length === 0 ? (
+                  <Alert>No meal plans available for this hotel.</Alert>
+                ) : (
+                  <div className="grid gap-4">
+                    {mealPlans.map((plan) => (
+                      <div 
+                        key={plan.id}
+                        className={`border p-4 rounded-lg cursor-pointer transition-all ${
+                          selectedMealPlan && selectedMealPlan.id === plan.id
+                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                            : 'border-neutral-200 hover:border-primary-300 dark:border-neutral-700'
+                        }`}
+                        onClick={() => handleMealPlanSelect(plan)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h5 className="font-medium">{plan.name}</h5>
+                            <p className="text-sm text-neutral-500">{plan.description}</p>
+                            {plan.included_meals && plan.included_meals.length > 0 && (
+                              <div className="mt-2">
+                                <p className="text-xs text-neutral-500">Includes:</p>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {plan.included_meals.map((meal: string, idx: number) => (
+                                    <span 
+                                      key={idx}
+                                      className="inline-block px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800"
+                                    >
+                                      {meal}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-lg font-bold text-primary-600">
+                            {plan.currency === 'USD' ? '$' : plan.currency} 
+                            {plan.price}
+                            <span className="text-sm font-normal text-neutral-500">/person</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* CURRENT RESERVATION DETAILS */}
+              <div className="bg-neutral-50 dark:bg-neutral-800 rounded-2xl p-4 mt-4">
+                <h4 className="text-base font-semibold mb-4">Your Reservation</h4>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between text-neutral-600 dark:text-neutral-300">
+                    <span>
+                      ${priceBreakdown.basePrice} x {stayDuration} nights
+                      {selectedRoomOption && ` (${selectedRoomOption.room_type_name})`}
+                    </span>
+                    <span>${priceBreakdown.basePrice * stayDuration}</span>
+                  </div>
+                  
+                  {selectedMealPlan && (
+                    <div className="flex justify-between text-neutral-600 dark:text-neutral-300">
+                      <span>
+                        {selectedMealPlan.name} x {guestCount} guests
+                      </span>
+                      <span>${selectedMealPlan.price * guestCount}</span>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between text-neutral-600 dark:text-neutral-300">
+                    <span>Service fee</span>
+                    <span>${priceBreakdown.serviceCharge.toFixed(2)}</span>
+                  </div>
+                  
+                  <div className="border-t border-neutral-200 dark:border-neutral-700 pt-3 flex justify-between font-semibold">
+                    <span>Total</span>
+                    <span>${priceBreakdown.total.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* BOOK NOW BUTTON */}
+              <div className="mt-6">
+                <ButtonPrimary 
+                  onClick={handleBookNow}
+                  disabled={isBookingLoading || !selectedRoomOption || !selectedMealPlan}
+                  className="w-full"
+                >
+                  {isBookingLoading ? (
+                    <>
+                      <Spinner className="h-5 w-5 mr-2" /> Processing...
+                    </>
+                  ) : (isAuthenticated || manualAuthCheck) ? (
+                    "Book Now"
+                  ) : (
+                    "Sign in to reserve"
+                  )}
+                </ButtonPrimary>
               </div>
             </div>
           </div>

@@ -32,21 +32,20 @@
     "title": "How it works",
     "subtitle": "Keep calm & travel on",
     "bookAndRelax": {
-      "title": "Book & relax",
-      "description": "Let each trip be an inspirational journey, each room a peaceful space"
+      "title": "See it all",
+      "description": "From local hotels to global brands, discover millions of rooms all around the world."
     },
     "smartChecklist": {
-      "title": "Smart checklist",
-      "description": "Let each trip be an inspirational journey, each room a peaceful space"
+      "title": "Compare right here",
+      "description": "No need to search anywhere else. The biggest names in travel are right here."
     },
     "saveMore": {
-      "title": "Save more",
-      "description": "Let each trip be an inspirational journey, each room a peaceful space"
+      "title": "Get exclusive rates",
+      "description": "We‘ve special deals with the world’s leading hotels and we these savings with you."
     }
   },
   "featuredPlaces": {
-    "title": "Featured Places to Stay",
-    "subtitle": "Popular places to stay that we recommend for you",
+    "title": "Hotels in your area ",
     "viewAll": "View All Hotels",
     "bedroom": "Bedroom",
     "bedrooms": "Bedrooms",
@@ -74,7 +73,6 @@
   },
   "suggestions": {
     "title": "Suggestions for discovery",
-    "subtitle": "Popular places to stay that we recommend for you",
     "propertyTypes": {
       "enjoyGreatCold": "Enjoy the great cold",
       "sleepFloatingWay": "Sleep in a floating way",
@@ -86,21 +84,5 @@
   "exploreByStays": {
     "title": "Explore by types of stays",
     "subtitle": "Explore houses based on 10 types of stays"
-  },
-  "videos": {
-    "title": "The Videos 🎬",
-    "description": "Check out our hottest videos. View more and share more new perspectives on just about any topic. Everyone's welcome."
-  },
-  "newsletter": {
-    "title": "Join our newsletter 🎉",
-    "subtitle": "Read and share new perspectives on just about any topic. Everyone's welcome.",
-    "discount": "Get more discount",
-    "premium": "Get premium magazines",
-    "emailPlaceholder": "Enter your email"
-  },
-  "whyChooseUs": {
-    "title": "Why did you choose us?",
-    "description": "Accompanying us, you have a trip full of experiences. With Chisfis, booking accommodation, resort villas, hotels, private houses, apartments... becomes fast, convenient and easy.",
-    "becomeAuthor": "Become an author"
   }
 } 

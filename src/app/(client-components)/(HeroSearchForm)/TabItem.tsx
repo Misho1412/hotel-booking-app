@@ -9,10 +9,10 @@ export interface TabItemProps {
 const TabItem: FC<TabItemProps> = ({ children, active = false, onClick = () => {} }) => {
   return (
     <li
-      className={`flex items-center cursor-pointer font-['ABeeZee'] text-[16px] ${
+      className={`flex items-center cursor-pointer text-sm py-3 px-4 ${
         active
-          ? "text-white border-b-2 border-white"
-          : "text-[#ffffff80] hover:text-white"
+          ? "text-white font-medium border-b-2 border-white"
+          : "text-white/70 hover:text-white"
       }`}
       onClick={onClick}
     >
@@ -21,4 +21,4 @@ const TabItem: FC<TabItemProps> = ({ children, active = false, onClick = () => {
   );
 };
 
-export default TabItem; 
+export default TabItem;

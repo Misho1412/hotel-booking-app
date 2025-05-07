@@ -173,6 +173,38 @@ export interface RoomAvailabilityResponse {
   roomTypes: RoomType[];
 }
 
+// Interface for meal plan
+export interface MealPlan {
+  id: string;
+  name: string;
+  description: string;
+  included_meals: string[]; // breakfast, lunch, dinner, etc.
+  price: number;
+  currency: string;
+}
+
+// Interface for room reservation options
+export interface RoomReservationOption {
+  room_type_id: string;
+  room_type_name: string;
+  room_view_id: string;
+  room_view_name: string;
+  price: number;
+  currency: string;
+  available: boolean;
+  max_occupancy: number;
+  amenities?: string[];
+  images?: string[];
+  description?: string;
+}
+
+// Interface for room reservation options response
+export interface RoomReservationOptionsResponse {
+  hotel_id: string;
+  hotel_name: string;
+  options: RoomReservationOption[];
+}
+
 /**
  * Service for Room related operations
  */
@@ -690,44 +722,159 @@ const roomService = {
     }
   },
 
+
   /**
-   * Get detailed information for a specific room
-   * @param roomId - The ID of the room to retrieve detailed information for
-   * @returns Promise with detailed room information
+   * Get all room reservation options for a specific hotel
+   * @param hotelId - The ID of the hotel
+   * @param checkInDate - Check-in date (Date object)
+   * @param checkOutDate - Check-out date (Date object)
+   * @param numAdults - Number of adults (default: 2)
+   * @param numChildren - Number of children (default: 0)
+   * @returns Promise with room reservation options
    */
-  getRoomDetails: async (roomId: string): Promise<any> => {
+  getRoomReservationOptions: async (
+    hotelId: string, 
+    checkInDate?: Date, 
+    checkOutDate?: Date, 
+    numAdults: number = 2, 
+    numChildren: number = 0
+  ): Promise<RoomReservationOptionsResponse> => {
     try {
-      console.log(`Fetching detailed room information for ID: ${roomId}`);
+      console.log(`Fetching room reservation options for hotel ID: ${hotelId}`);
       
-      // Get the token directly to make sure it's available
+      // Get token for authentication if available
       const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
-      console.log(`Authentication token available: ${!!token}`);
       
       // Create headers with token if available
       const headers: Record<string, string> = {};
       if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        headers['Authorization'] = `Token ${token}`;
       }
       
-      const response = await apiClient.get(`/room-details/${roomId}/`, {
-        headers
-      });
+      // Format dates to DD/MM/YYYY for the API
+      let params: Record<string, string> = {};
       
-      console.log(`Room details API response status: ${response.status}`);
+      if (checkInDate) {
+        const formattedCheckInDate = `${checkInDate.getDate().toString().padStart(2, '0')}/${(checkInDate.getMonth() + 1).toString().padStart(2, '0')}/${checkInDate.getFullYear()}`;
+        params.from_date = formattedCheckInDate;
+        console.log(`Using check-in date: ${formattedCheckInDate}`);
+      } else {
+        console.log('Warning: No check-in date provided');
+      }
       
-      // Return the actual response data without strict type validation
-      // This allows flexibility with the response structure
+      if (checkOutDate) {
+        const formattedCheckOutDate = `${checkOutDate.getDate().toString().padStart(2, '0')}/${(checkOutDate.getMonth() + 1).toString().padStart(2, '0')}/${checkOutDate.getFullYear()}`;
+        params.to_date = formattedCheckOutDate;
+        console.log(`Using check-out date: ${formattedCheckOutDate}`);
+      } else {
+        console.log('Warning: No check-out date provided');
+      }
+      
+      // Add guest count parameters
+      params.num_adults = numAdults.toString();
+      params.num_children = numChildren.toString();
+      
+      console.log('Sending params to API:', params);
+      
+      const response = await apiClient.get<RoomReservationOptionsResponse>(
+        `/rooms/api/v1/room-reservation-options/${hotelId}/`,
+        { 
+          headers,
+          params
+        }
+      );
+      
+      console.log(`Room reservation options API response status: ${response.status}`);
+      console.log(`Found ${response.data.options?.length || 0} room options for hotel ${hotelId}`);
+      
       return response.data;
     } catch (error: any) {
-      console.error('Get room details error:', error);
+      console.error('Get room reservation options error:', error);
       
       // Handle authentication errors
       if (error.response?.status === 401) {
-        console.error("Authentication failed when accessing room details API");
-        throw new Error("Authentication required to access detailed room information");
+        throw new Error('Authentication required to access room reservation options');
       }
       
-      throw new Error(`Failed to retrieve detailed information for room ${roomId}: ${error.message}`);
+      throw new Error(`Failed to retrieve room reservation options for hotel ${hotelId}: ${error.message}`);
+    }
+  },
+
+  /**
+   * Get all meal plans for a specific hotel
+   * @param hotelId - The ID of the hotel
+   * @returns Promise with meal plans
+   */
+  getMealPlans: async (hotelId: string): Promise<MealPlan[]> => {
+    try {
+      console.log(`Fetching meal plans for hotel ID: ${hotelId}`);
+      
+      // Get token for authentication if available
+      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+      
+      // Create headers with token if available
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Token ${token}`;
+      }
+      
+      const response = await apiClient.get<MealPlan[]>(
+        `/rooms/api/v1/meals/${hotelId}`,
+        { headers }
+      );
+      
+      console.log(`Meal plans API response status: ${response.status}`);
+      console.log(`Found ${response.data?.length || 0} meal plans for hotel ${hotelId}`);
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('Get meal plans error:', error);
+      
+      // Handle authentication errors
+      if (error.response?.status === 401) {
+        throw new Error('Authentication required to access meal plans');
+      }
+      
+      throw new Error(`Failed to retrieve meal plans for hotel ${hotelId}: ${error.message}`);
+    }
+  },
+  
+  /**
+   * Get all rooms for a specific room type
+   * @param roomTypeId - The ID of the room type
+   * @returns Promise with rooms of the specified type
+   */
+  getRoomsByType: async (roomTypeId: string): Promise<Room[]> => {
+    try {
+      console.log(`Fetching rooms for room type ID: ${roomTypeId}`);
+      
+      // Get token for authentication if available
+      const token = typeof window !== 'undefined' ? localStorage.getItem('amr_auth_token') : null;
+      
+      // Create headers with token if available
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Token ${token}`;
+      }
+      
+      const response = await apiClient.get<Room[]>(
+        `/rooms/api/v1/${roomTypeId}`,
+        { headers }
+      );
+      
+      console.log(`Rooms by type API response status: ${response.status}`);
+      console.log(`Found ${response.data?.length || 0} rooms for room type ${roomTypeId}`);
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('Get rooms by type error:', error);
+      
+      // Handle authentication errors
+      if (error.response?.status === 401) {
+        throw new Error('Authentication required to access rooms by type');
+      }
+      
+      throw new Error(`Failed to retrieve rooms for room type ${roomTypeId}: ${error.message}`);
     }
   },
 };
