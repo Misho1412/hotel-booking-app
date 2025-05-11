@@ -1,18 +1,15 @@
 'use client';
 
-import rightImg from "@/images/about-hero-right.png";
-import React, { FC } from "react";
-import SectionFounder from "./SectionFounder";
-import SectionStatistic from "./SectionStatistic";
-import SectionHero from "./SectionHero";
+import Image from "next/image";
+import heroRightImg from "@/images/hero-right.png";
+import SectionFounder from "@/components/SectionFounder";
+import SectionStatistic from "@/components/SectionStatistic";
+import SectionHero from "@/app/about/SectionHero";
 import BgGlassmorphism from "@/components/BgGlassmorphism";
-import BackgroundSection from "@/components/BackgroundSection";
 import SectionClientSay from "@/components/SectionClientSay";
 import SectionSubscribe2 from "@/components/SectionSubscribe2";
 
-export interface PageAboutProps {}
-
-const PageAbout: FC<PageAboutProps> = ({}) => {
+export default function PageAbout() {
   return (
     <div className={`nc-PageAbout overflow-hidden relative`}>
       {/* ======== BG GLASS ======== */}
@@ -20,24 +17,17 @@ const PageAbout: FC<PageAboutProps> = ({}) => {
 
       <div className="container py-16 lg:py-28 space-y-16 lg:space-y-28">
         <SectionHero
-          rightImg={rightImg}
+          rightImg={heroRightImg}
           heading="👋 About Us."
           btnText=""
           subHeading="We're impartial and independent, and every day we create distinctive, world-class programmes and content which inform, educate and entertain millions of people in the around the world."
         />
 
         <SectionFounder />
-        <div className="relative py-16">
-          <BackgroundSection />
-          <SectionClientSay />
-        </div>
-
         <SectionStatistic />
-
+        <SectionClientSay />
         <SectionSubscribe2 />
       </div>
     </div>
   );
-};
-
-export default PageAbout;
+}

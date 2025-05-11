@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { refreshToken } from '@/lib/api/services/authService';
+import { authService } from '@/lib/api/services';
 
 /**
  * AuthStatusIndicator - A component that displays the current authentication status
@@ -58,10 +58,9 @@ export default function AuthStatusIndicator() {
       setIsRefreshing(true);
       setMessage(null);
       
-      // Call the refresh token service
-      const success = await refreshToken();
+      const response = await authService.refreshToken();
       
-      if (success) {
+      if (response) {
         setMessage('Token successfully refreshed');
         
         // Store refresh timestamp

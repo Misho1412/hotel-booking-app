@@ -13,26 +13,18 @@ import axios from 'axios';
 // Interface for Reservation entity
 export interface Reservation {
   id: string;
-  userId: string;
-  hotelId: string;
-  roomId: string;
-  roomTypeId: string;
-  checkInDate: string;
-  checkOutDate: string;
-  numberOfGuests: number;
-  totalPrice: number;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
-  guestDetails: {
-    fullName: string;
-    email: string;
-    phoneNumber: string;
-    specialRequests?: string;
+  hotel?: {
+    id: string;
+    name: string;
   };
-  paymentStatus: 'pending' | 'partial' | 'paid' | 'refunded';
-  room?: Room;
-  roomType?: RoomType;
-  createdAt: string;
-  updatedAt: string;
+  hotelId: string;
+  check_in: string;
+  check_out: string;
+  guests: number;
+  total_price: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
 }
 
 // Interface for creating a reservation (backend format)
