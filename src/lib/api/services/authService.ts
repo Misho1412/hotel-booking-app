@@ -82,8 +82,8 @@ const authService = {
       console.log('Formatted login data:', { email: formattedCredentials.email });
       
       // Get the base URL from environment variable or apiClient
-      const baseURL = process.env.NEXT_PUBLIC_AMR_API_URL || apiClient.defaults.baseURL || 'https://bookingengine.onrender.com/';
-      const fullURL = `${baseURL}auth/api/v1/login/`;
+      const baseURL = process.env.NEXT_PUBLIC_AMR_API_URL || apiClient.defaults.baseURL || 'https://bookingengine.onrender.com';
+      const fullURL = `${baseURL}/auth/api/v1/login/`;
       
       console.log('Making direct fetch POST request to:', fullURL);
       
