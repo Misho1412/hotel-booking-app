@@ -24,8 +24,8 @@ const TestRegistration = () => {
       console.log("Making direct registration API call with:", testData);
       
       // Get the API base URL - using the same as in authService
-      const baseURL = process.env.NEXT_PUBLIC_AMR_API_URL || 'https://bookingengine.onrender.com/';
-      const fullURL = `${baseURL}auth/api/v1/register/`;
+      const baseURL = process.env.NEXT_PUBLIC_AMR_API_URL || 'https://bookingengine.onrender.com';
+      const fullURL = `${baseURL}/auth/api/v1/register/`;
       
       console.log("Registration URL:", fullURL);
       

@@ -425,7 +425,7 @@ const authService = {
       
       // Get the base URL from apiClient
       const baseURL = apiClient.defaults.baseURL;
-      const fullURL = `${baseURL}auth/api/v1/register/`;
+      const fullURL = `${baseURL}/auth/api/v1/register/`;
       console.log('Making direct fetch POST request to:', fullURL);
       
       // Use fetch API directly with explicit method setting
