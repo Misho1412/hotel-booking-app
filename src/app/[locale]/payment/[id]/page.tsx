@@ -70,7 +70,8 @@ const PaymentPage: React.FC<PageProps> = ({ params }) => {
       payment_id: paymentResponse.id
     });
     
-    router.push(`/${params.locale}/booking-confirmation?${searchParams.toString()}`);
+    // Redirect to success page using the correct route type
+    const route = `/${params.locale}/booking-confirmation?payment_id=${paymentResponse.id}` as const;
   };
 
   const handlePaymentError = (error: any) => {

@@ -157,7 +157,7 @@ export const HeroSearchForm: FC<HeroSearchFormProps> = ({ className = "" }) => {
 
           {/* Check-in selector - Implemented as a Popover */}
           <div className="relative flex-shrink-0 w-[110px]">
-            <Popover className="relative">
+            <Popover className="relative ">
               {({ open, close }) => (
                 <>
                   <Popover.Button
@@ -186,7 +186,13 @@ export const HeroSearchForm: FC<HeroSearchFormProps> = ({ className = "" }) => {
                     leaveFrom="opacity-100 translate-y-0"
                     leaveTo="opacity-0 translate-y-1"
                   >
-                    <Popover.Panel className="absolute left-0 z-50 mt-2 bg-white rounded-xl shadow-xl border border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800">
+                    <Popover.Panel className="absolute left-0 z-50 mt-2 bg-white rounded-xl shadow-xl border border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 w-[510px]">
+                      <div className="p-5">
+                        <div className="text-sm font-medium text-[#252525] dark:text-white">
+                          {t('checkIn')}
+                        </div>
+                      </div>
+
                       <div className="p-5">
                         <DatePicker
                           selected={checkInDate}
@@ -244,7 +250,7 @@ export const HeroSearchForm: FC<HeroSearchFormProps> = ({ className = "" }) => {
                     leaveFrom="opacity-100 translate-y-0"
                     leaveTo="opacity-0 translate-y-1"
                   >
-                    <Popover.Panel className="absolute left-0 z-50 mt-2 bg-white rounded-xl shadow-xl border border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800">
+                    <Popover.Panel className="absolute left-0 z-50 mt-2 bg-white rounded-xl shadow-xl border border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 w-[510px]">
                       <div className="p-5">
                         <DatePicker
                           selected={checkOutDate}

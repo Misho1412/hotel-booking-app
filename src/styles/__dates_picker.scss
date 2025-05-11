@@ -1,16 +1,16 @@
 .react-datepicker {
-  @apply relative grid grid-cols-1 gap-10 md:grid-cols-2;
+  @apply relative grid grid-cols-1 gap-12 md:grid-cols-2;
 }
 .react-datepicker__aria-live {
   @apply hidden;
 }
 
 .react-datepicker__month-container {
-  @apply text-center;
+  @apply text-center p-4;
 }
 
 .react-datepicker__current-month {
-  @apply text-sm font-semibold text-gray-900 dark:text-gray-100;
+  @apply text-lg font-semibold text-gray-900 dark:text-gray-100;
 }
 
 .react-datepicker__day-names {
@@ -63,7 +63,7 @@
 }
 
 .react-datepicker__day_span {
-  @apply flex h-[46px] w-[46px] items-center justify-center rounded-full;
+  @apply flex h-[56px] w-[504px] items-center justify-center rounded-full text-base;
 }
 
 /* addListingDatePickerExclude */
@@ -73,7 +73,7 @@
       @apply relative bg-gray-100 dark:bg-gray-700/50 rounded-none empty:opacity-0;
       &::after {
         content: "";
-        @apply block h-full absolute border-l border-neutral-300 dark:border-neutral-700 rotate-45;
+        @apply block h-full absolute border-l-2 border-neutral-300 dark:border-neutral-700 rotate-45;
       }
     }
   }

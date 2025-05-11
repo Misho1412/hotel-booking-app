@@ -21,7 +21,7 @@ const Header: FC<HeaderProps> = ({ navType = "MainNav1", className = "" }) => {
       className={`nc-Header fixed top-0 w-full left-0 right-0 z-40 ${className}`}
     >
       {/* elbat3aa el rectangle 2ly fo2 deh */}
-      <div className="absolute left-1/2 transform -translate-x-[33%] w-full max-w-[1012px] z-0">  <svg 
+      <div className="absolute left-1/2 transform left-[53%] -translate-x-[33%] w-full max-w-[1012px] z-0">  <svg 
     width="50%" 
     height="40%" 
     viewBox="0 0 1012 108" 

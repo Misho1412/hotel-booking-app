@@ -36,10 +36,6 @@ const PaymentPage: React.FC = () => {
       return;
     }
 
-    // Otherwise, try to get reservation from location state (React Router)
-    // Note: This is using Next.js router which works differently from React Router
-    // In a real implementation, you might need to use sessionStorage or localStorage
-    // to persist this data between page navigations
     try {
       // In Next.js, you might store the reservation in sessionStorage on the previous page
       const savedReservation = sessionStorage.getItem('currentReservation');
