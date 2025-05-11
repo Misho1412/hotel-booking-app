@@ -56,12 +56,14 @@
     "react-use-measure": "^2.1.7",
     "sass": "^1.62.1",
     "server-only": "^0.0.1",
+    "sharp": "^0.34.1",
     "tailwind-merge": "^3.2.0",
     "three": "^0.175.0",
     "typescript": "5.0.4",
     "zod": "^3.24.4"
   },
   "devDependencies": {
+    "@netlify/plugin-nextjs": "^4.41.3",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^14.2.1",
     "@testing-library/user-event": "^14.5.2",

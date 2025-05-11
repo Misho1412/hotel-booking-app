@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import ButtonPrimary from "@/shared/ButtonPrimary";
-import dowloadApp from "@/images/dowloadApp.png";
+import placeholder from "@/images/placeholder-large.png";
 
 const SectionDowloadApp = () => {
   return (
@@ -10,7 +10,7 @@ const SectionDowloadApp = () => {
         <div className="relative flex flex-col lg:flex-row items-center">
           <div className="flex-1 mb-10 lg:mb-0">
             <Image
-              src={dowloadApp}
+              src={placeholder}
               alt="Download App"
               className="w-full max-w-lg mx-auto"
             />

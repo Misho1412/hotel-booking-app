@@ -23,7 +23,7 @@ import Spinner from "@/shared/Spinner";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
 
-export default function CheckoutPage() {
+const CheckOutPagePageMain = () => {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -621,4 +621,6 @@ export default function CheckoutPage() {
       </div>
     </div>
   );
-} 
+};
+
+export default CheckOutPagePageMain; 

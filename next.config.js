@@ -15,6 +15,9 @@ const nextConfig = {
     typedRoutes: true,
   },
   images: {
+    unoptimized: true, // Allow unoptimized images
+    dangerouslyAllowSVG: true, // Allow SVG images
+    contentDispositionType: 'attachment',
     remotePatterns: [
       {
         protocol: "https",

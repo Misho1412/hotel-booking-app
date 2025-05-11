@@ -1,7 +1,12 @@
 import React, { FC, Fragment, useState } from "react";
-import CheckOutPagePageMain from "@/app/[locale]/checkout/[id]/page";
+import dynamic from "next/dynamic";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/solid";
+
+// Dynamically import the checkout page component
+const CheckOutPagePageMain = dynamic(() => import("@/app/[locale]/checkout/[id]/page"), {
+  ssr: false,
+});
 
 interface ModalReserveMobileProps {
   renderChildren?: (p: { openModal: () => void }) => React.ReactNode;
